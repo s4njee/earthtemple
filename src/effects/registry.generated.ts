@@ -16,6 +16,8 @@ import { meta as meta12 } from './rose/meta.ts';
 import { meta as meta13 } from './sunflowers/meta.ts';
 import { meta as meta14 } from './tulips/meta.ts';
 import { meta as meta15 } from './wildflower-meadow/meta.ts';
+import poster0 from './cherry-branch/poster.webp?url';
+import poster1 from './dewy-petals/poster.webp?url';
 import poster2 from './flower-opening/poster.webp?url';
 import poster3 from './fur-text/poster.webp?url';
 import poster4 from './grass-edges/poster.webp?url';
@@ -25,6 +27,11 @@ import poster7 from './hello/poster.webp?url';
 import poster8 from './lawn/poster.webp?url';
 import poster9 from './meadow/poster.webp?url';
 import poster10 from './mowing/poster.webp?url';
+import poster11 from './night-bloom/poster.webp?url';
+import poster12 from './rose/poster.webp?url';
+import poster13 from './sunflowers/poster.webp?url';
+import poster14 from './tulips/poster.webp?url';
+import poster15 from './wildflower-meadow/poster.webp?url';
 
 export const metas: readonly EffectMeta[] = [
   meta0,
@@ -65,6 +72,8 @@ export const loaders: Readonly<Record<string, () => Promise<EffectModule>>> = {
 };
 
 export const posters: Readonly<Record<string, string>> = {
+  'cherry-branch': poster0,
+  'dewy-petals': poster1,
   'flower-opening': poster2,
   'fur-text': poster3,
   'grass-edges': poster4,
@@ -74,4 +83,9 @@ export const posters: Readonly<Record<string, string>> = {
   lawn: poster8,
   meadow: poster9,
   mowing: poster10,
+  'night-bloom': poster11,
+  rose: poster12,
+  sunflowers: poster13,
+  tulips: poster14,
+  'wildflower-meadow': poster15,
 };
