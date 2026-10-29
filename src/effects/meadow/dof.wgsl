@@ -25,7 +25,8 @@ fn coc(d: f32) -> f32 {
   return min(D.max_radius, D.aperture * abs(1.0 - D.focus / max(d, 0.01)));
 }
 
-const TAPS: u32 = 40u;
+// Taps on the disc: enough for the meadow's blur; a wider one, or bright points, wants more.
+override TAPS: u32 = 40u;
 
 @fragment fn dof_fs(@builtin(position) at: vec4f) -> @location(0) vec4f {
   let size = vec2i(textureDimensions(sharp));

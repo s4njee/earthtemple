@@ -26,8 +26,10 @@ import { carotenoidK, chlorophyllK, plateSpectrum, spectrumRgb } from './leaf.ts
  * A white petal is no pigment and a lot of scattering: air spaces between its cells, here more
  * layers. Conical epidermal cells (`velvet`) send light that would have reflected off the surface
  * into the petal, so more of it passes through the pigment: Noda et al.'s petunias without them are
- * paler. That is modelled as a longer path through the pigment; the velvet look in the shader is
- * the loss of gloss and a soft brightening at grazing angles.
+ * paler. That is modelled as a longer path through the pigment, and as the cones trapping most of
+ * the light the flat face would have reflected white (Gorton and Vogelmann): a velvet red stays
+ * deep where a flat one goes pink in the light. The velvet look in the shader is the loss of gloss
+ * and a soft brightening at grazing angles.
  */
 
 export interface PetalPigments {
@@ -109,7 +111,7 @@ function absorption(p: Readonly<PetalPigments>, l: number): number {
 
 /** Reflectance and transmittance of the petal at one wavelength. */
 export function petalSpectrum(p: Readonly<PetalPigments>, l: number): { r: number; t: number } {
-  return plateSpectrum(absorption(p, l), p.layers, l);
+  return plateSpectrum(absorption(p, l), p.layers, l, 1 - 0.7 * (p.velvet ?? 0));
 }
 
 const cache = new Map<string, PetalColours>();

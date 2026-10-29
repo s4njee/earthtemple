@@ -12,7 +12,19 @@ const W = 32;
 const H = 16;
 
 const literal = (s: PetalShape) =>
-  `PetalShape(${[s.width, s.widest, s.tip, s.claw, s.notch, s.cup, s.curl, s.excess, s.fringe]
+  `PetalShape(${[
+    s.width,
+    s.widest,
+    s.tip,
+    s.claw,
+    s.notch,
+    s.cup,
+    s.curl,
+    s.excess,
+    s.fringe,
+    s.roll,
+    s.wrap,
+  ]
     .map((x) => x.toFixed(9))
     .join(', ')})`;
 

@@ -56,18 +56,25 @@ describe('opening by differential growth', () => {
   });
 
   it('opens monotonically, the outer organs first', () => {
-    const organs = petals('rose');
-    let previous = organs.map((o) => openState(o, 0, OPTIONS));
-    for (let k = 1; k <= 200; k++) {
-      const now = organs.map((o) => openState(o, k / 200, OPTIONS));
-      now.forEach((state, i) => {
-        // Growth only adds: the inner face's lead never shrinks while the flower opens.
-        expect(state.hingeStrain).toBeGreaterThanOrEqual(previous[i]!.hingeStrain - 1e-15);
-        expect(state.tilt).toBeGreaterThanOrEqual(previous[i]!.tilt - 1e-12);
-        // An organ further out is at least as open as one further in.
-        if (i > 0) expect(now[i - 1]!.open).toBeGreaterThanOrEqual(state.open - 1e-12);
-      });
-      previous = now;
+    for (const name of ['rose', 'camellia'] as const) {
+      const organs = petals(name);
+      let previous = organs.map((o) => openState(o, 0, OPTIONS));
+      for (let k = 1; k <= 200; k++) {
+        const now = organs.map((o) => openState(o, k / 200, OPTIONS));
+        now.forEach((state, i) => {
+          // Growth only adds: the inner face's lead never shrinks while the flower opens, so the
+          // blade unwinds and the hinge leans out. A nested bud's petal (story 12.2) leans as its
+          // shell holds it, and its hinge may relax as it is let go: only its blade unwinds.
+          expect(state.bladeStrain).toBeLessThanOrEqual(previous[i]!.bladeStrain + 1e-12);
+          if (!organs[i]!.nested) {
+            expect(state.hingeStrain).toBeGreaterThanOrEqual(previous[i]!.hingeStrain - 1e-12);
+            expect(state.tilt).toBeGreaterThanOrEqual(previous[i]!.tilt - 1e-12);
+          }
+          // An organ further out is at least as open as one further in.
+          if (i > 0) expect(now[i - 1]!.open).toBeGreaterThanOrEqual(state.open - 1e-12);
+        });
+        previous = now;
+      }
     }
   });
 

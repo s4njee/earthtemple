@@ -249,6 +249,70 @@
       }
     },
     {
+      "id": "cherry-branch",
+      "title": "Cherry branch",
+      "summary": "A cherry branch that grows out across the view, buds and blossoms as the page scrolls, then lets its petals go on the breeze. The branch is grown by space colonisation and tapers by the pipe model; the blossoms open a little out of step on their pedicels, and each fallen petal tumbles as it drifts down.",
+      "epic": "12",
+      "tier": "B",
+      "tags": [
+        "flowers",
+        "trees",
+        "scroll",
+        "wind",
+        "hero"
+      ],
+      "status": "demo",
+      "poster": "src/effects/cherry-branch/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "yes",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: the branch in full blossom.",
+        "useCases": [
+          "A spring or hanami page",
+          "A scroll story",
+          "A Japanese restaurant or tea brand"
+        ]
+      }
+    },
+    {
+      "id": "dewy-petals",
+      "title": "Dewy petals",
+      "summary": "A macro close-up of a rose's petals beaded with dew, turning slowly under a shallow depth of field: each drop a lens showing a flipped view of the petals round it, with a dark rim, a glint and a crescent of gathered light. The look of a perfume or skincare brand.",
+      "epic": "12",
+      "tier": "C",
+      "tags": [
+        "flowers",
+        "water",
+        "depth of field",
+        "macro",
+        "hero"
+      ],
+      "status": "demo",
+      "poster": "src/effects/dewy-petals/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "low",
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: the petals and their dew.",
+        "useCases": [
+          "A perfume or skincare hero",
+          "A florist",
+          "A wedding or spa page"
+        ]
+      }
+    },
+    {
       "id": "flower-opening",
       "title": "A flower opening",
       "summary": "One flower opening from the bud on its swaying stem, over time or as the page scrolls: a lily, buttercup, cherry blossom, poppy, rose, camellia, hibiscus, morning glory or daffodil, built from its floral diagram, its petals grown surfaces coloured by their pigments that open as their inner faces outgrow their outer ones.",
@@ -279,6 +343,167 @@
           "A hero centrepiece",
           "A section divider",
           "A florist or spring page"
+        ]
+      }
+    },
+    {
+      "id": "night-bloom",
+      "title": "Night bloom",
+      "summary": "A moonflower unfurling at dusk, fast enough to watch: its twisted bud untwists and the long tube flares into a broad white limb folded by five greener bands, pale in the moonlight, seen as dark-adapted eyes see it.",
+      "epic": "12",
+      "tier": "A",
+      "tags": [
+        "flowers",
+        "night",
+        "scroll",
+        "hero"
+      ],
+      "status": "demo",
+      "poster": "src/effects/night-bloom/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: the moonflower open in the dark.",
+        "useCases": [
+          "A dark hero",
+          "An evening or night-time event page",
+          "A fragrance or candle brand"
+        ]
+      }
+    },
+    {
+      "id": "rose",
+      "title": "A rose",
+      "summary": "A rose opening from a tight bud, close up and slow: forty petals in a golden-angle spiral, nested shell inside shell in the bud and bowl inside bowl as they open, so none passes through another, their margins rolling back as they spread. Red, pink, white, yellow or peach, from their pigments.",
+      "epic": "12",
+      "tier": "A",
+      "tags": [
+        "flowers",
+        "petals",
+        "scroll",
+        "phyllotaxis",
+        "hero"
+      ],
+      "status": "ready",
+      "poster": "src/effects/rose/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "yes",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: the rose half open.",
+        "useCases": [
+          "A florist or wedding hero",
+          "A Valentine's or anniversary page",
+          "A perfume launch"
+        ]
+      }
+    },
+    {
+      "id": "sunflowers",
+      "title": "Sunflowers",
+      "summary": "Rows of sunflowers against a summer sky whose heads turn to follow the pointer as young sunflowers follow the sun, each a little behind the last, and drift back east when it leaves. Each head is 610 florets in Vogel’s golden-angle spiral, ringed by 34 rays.",
+      "epic": "12",
+      "tier": "B",
+      "tags": [
+        "flowers",
+        "phyllotaxis",
+        "pointer",
+        "hero"
+      ],
+      "status": "demo",
+      "poster": "src/effects/sunflowers/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: the rows facing the viewer.",
+        "useCases": [
+          "A summer or harvest hero",
+          "A seed company or farm shop",
+          "An interactive landing page"
+        ]
+      }
+    },
+    {
+      "id": "tulips",
+      "title": "Tulip fields",
+      "summary": "A Dutch bulb field running to the horizon in beds of one colour each, red, yellow, pink, purple, white and orange from their pigments. The near tulips are whole cups swaying in gusts; the far field is their colour. In the evening they close as the light goes.",
+      "epic": "12",
+      "tier": "C",
+      "tags": [
+        "flowers",
+        "wind",
+        "hero"
+      ],
+      "status": "demo",
+      "poster": "src/effects/tulips/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: the striped field in sun.",
+        "useCases": [
+          "A spring hero",
+          "A travel page for the Netherlands",
+          "A bulb or garden retailer"
+        ]
+      }
+    },
+    {
+      "id": "wildflower-meadow",
+      "title": "Wildflower meadow",
+      "summary": "The meadow in flower: ox-eye daisies, buttercups, poppies and cornflowers in drifts through the grass, each drift its own species. The nearest heads are whole flowers from their floral diagrams, swaying and brushed aside on the stems the grass grew; further off they are points of colour, and the drifts tint the far field.",
+      "epic": "12",
+      "tier": "C",
+      "tags": [
+        "grass",
+        "flowers",
+        "wind",
+        "compute",
+        "indirect draws",
+        "depth of field",
+        "hero"
+      ],
+      "status": "demo",
+      "poster": "src/effects/wildflower-meadow/poster.webp",
+      "scorecard": {
+        "compute": true,
+        "mobile": "untested",
+        "flash": "low",
+        "pattern": "none",
+        "motionPresets": [
+          "walk through"
+        ],
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: a still of the meadow in flower, or a photograph.",
+        "useCases": [
+          "A spring or summer hero",
+          "A garden centre or seed company",
+          "An outdoor brand"
         ]
       }
     }

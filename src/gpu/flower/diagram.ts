@@ -14,8 +14,12 @@ import { FLAT_PETAL, type PetalShape } from './petal.ts';
 
 export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
-/** A flower's parts. The stem is not in a floral diagram; an effect adds it (story 11.5). */
-export type OrganKind = 'sepal' | 'petal' | 'stamen' | 'carpel' | 'receptacle' | 'tube' | 'stem';
+/**
+ * A flower's parts. The stem and its leaves are not in a floral diagram; the renderer adds them
+ * (story 11.5, src/gpu/flower/render.ts).
+ */
+export type OrganKind =
+  'sepal' | 'petal' | 'stamen' | 'carpel' | 'receptacle' | 'tube' | 'stem' | 'leaf';
 
 interface Ring {
   organ: OrganKind;
@@ -42,6 +46,13 @@ export interface Tube {
   flare: number;
   waves?: number;
   ruffle?: number;
+  /**
+   * Story 12.5: in the bud the limb is furled in a spiral, turned this far round the axis at the
+   * rim (as u²), and it untwists as it opens: a moonflower's bud is a twisted spire. `folds` is how
+   * deep its pleats are in the bud, as a fraction of the radius, one to a wave: the twist turns them.
+   */
+  twist?: number;
+  folds?: number;
 }
 
 export interface Whorl extends Ring {
@@ -70,13 +81,46 @@ export interface Spiral extends Omit<Ring, 'radius' | 'height' | 'open' | 'close
    * outer petals curl back and its inner ones curl in round the centre.
    */
   curl?: [number, number];
+  /**
+   * Spaced as Vogel's sunflower (story 4.4): radius as the square root of the members inside, so
+   * each takes an equal share of the disc. Otherwise the radius runs evenly from outer to inner.
+   */
+  vogel?: boolean;
+}
+
+/**
+ * Story 12.2: a bud whose petals are nested shells. In a rose's bud each petal wraps the ones
+ * inside it, so in the bud each lies on its own sphere round a common centre on the axis, through
+ * its base: the midline on the sphere's meridian (a constant curl of its length over the radius)
+ * and the blade wrapped across at the sphere's curvature. Shells round one centre never cross, and
+ * a spiral's members move inwards and up, so each lies inside the one before it. As it opens a
+ * nested petal stays on a surface of revolution, a bowl that flattens and turns back: its wrap
+ * across is the bowl's (`bowlWrap` in opening.ts), not a cup of its own, and nested bowls do not
+ * cross either. A petal too long
+ * for its shell is shorter in the bud and grows as it opens. While the bud is closed its shells
+ * are stretched upwards, which keeps them nested (any affine map does): a rose's bud is taller
+ * than it is wide.
+ */
+export interface Bud {
+  /** The shells' centre, m above the receptacle. */
+  centre: number;
+  /** The closed bud's height over its width. */
+  elongation: number;
+  /** How near the top of its shell a tip may come, rad from the axis. */
+  tip?: number;
 }
 
 export interface FloralDiagram {
   name: string;
   /** Outside in. */
   rings: readonly (Whorl | Spiral)[];
+  bud?: Bud;
+  /** Leave out the receptacle: a fallen petal is a petal alone (story 12.7). */
+  receptacle?: false;
 }
+
+/** How long a petal is in the bud, as a fraction of its open length, unless its shell says less. */
+export const BUD_SCALE = 0.75;
 
 export interface Organ {
   organ: OrganKind;
@@ -97,6 +141,13 @@ export interface Organ {
   radiusClosed?: number;
   /** The tube itself, for organ 'tube'. */
   tube?: Tube;
+  /**
+   * In a nested bud (`Bud`): wrapped round its shell and then its bowl, with its curl in the bud and
+   * its length there as a fraction of its open one.
+   */
+  nested?: boolean;
+  budCurl?: number;
+  budScale?: number;
 }
 
 export function arrange(diagram: Readonly<FloralDiagram>): Organ[] {
@@ -144,10 +195,13 @@ export function arrange(diagram: Readonly<FloralDiagram>): Organ[] {
       for (let k = 0; k < ring.count; k++) {
         const t = ring.count > 1 ? k / (ring.count - 1) : 0;
         const mix = (r: [number, number]) => r[0] + (r[1] - r[0]) * t;
+        const radius = ring.vogel
+          ? ring.radius[1] + (ring.radius[0] - ring.radius[1]) * Math.sqrt(1 - t)
+          : mix(ring.radius);
         organs.push({
           organ: ring.organ,
           azimuth: turn + k * ring.divergence,
-          radius: mix(ring.radius),
+          radius,
           height: mix(ring.height),
           closed: mix(ring.closed),
           open: mix(ring.open),
@@ -163,6 +217,8 @@ export function arrange(diagram: Readonly<FloralDiagram>): Organ[] {
   // Opening order: ring by ring from the outside in, and along a spiral from its outer end.
   const last = Math.max(...organs.map((o) => o.order), 1e-9);
   for (const o of organs) o.order /= last;
+  if (diagram.bud) nest(organs, diagram.bud);
+  if (diagram.receptacle === false) return organs;
   // The receptacle the organs stand on: a low dome out a little past the widest base, so nothing
   // shows through the middle of the flower.
   const reach =
@@ -181,6 +237,47 @@ export function arrange(diagram: Readonly<FloralDiagram>): Organ[] {
     curl: 0,
   });
   return organs;
+}
+
+/** Puts each sepal and petal on its shell in the bud (`Bud`). */
+function nest(organs: Organ[], bud: Readonly<Bud>): void {
+  const tip = bud.tip ?? 0.15;
+  for (const o of organs) {
+    if ((o.organ !== 'sepal' && o.organ !== 'petal') || o.radiusClosed !== undefined) continue;
+    const below = bud.centre - o.height;
+    const shell = Math.hypot(o.radius, below);
+    // Leaving its base along the meridian, upwards: tilted out from the axis by this much.
+    o.closed = Math.atan2(below, o.radius);
+    // The arc from its base to the top of the shell, less the tip's gap.
+    const arc = Math.atan2(o.radius, -below) - tip;
+    const length = o.shape.length * o.scale;
+    o.budScale = Math.min(BUD_SCALE, (shell * arc) / length);
+    const inBud = length * o.budScale;
+    o.budCurl = inBud / shell;
+    o.nested = true;
+  }
+}
+
+/** How far the open flower reaches from its axis, m. */
+export function openReach(organs: readonly Organ[]): number {
+  return Math.max(
+    ...organs.map((o) =>
+      o.tube
+        ? o.tube.rim[1]
+        : o.radius + o.shape.length * o.scale * Math.sin(Math.min(o.open, Math.PI / 2)),
+    ),
+  );
+}
+
+/** How high the open flower stands above its receptacle, m. */
+export function openTop(organs: readonly Organ[]): number {
+  return Math.max(
+    ...organs.map((o) =>
+      o.tube
+        ? o.height + o.tube.length
+        : o.height + o.shape.length * o.scale * Math.max(Math.cos(o.open), 0),
+    ),
+  );
 }
 
 const petal = (s: Partial<PetalShape>): PetalShape => ({ ...FLAT_PETAL, ...s });
@@ -442,16 +539,20 @@ export const POPPY: FloralDiagram = {
   ],
 };
 
-/** Roses: five sepals, then a golden-angle spiral of petals, the outer open and curled back. */
+/**
+ * Roses: five sepals, then a golden-angle spiral of petals, the outer open and curled back, their
+ * margins rolling back as they open. The bud is nested shells (`Bud`), taller than wide.
+ */
 export const ROSE: FloralDiagram = {
   name: 'rose',
+  bud: { centre: 0.009, elongation: 1.35 },
   rings: [
     {
       kind: 'whorl',
       organ: 'sepal',
       count: 5,
       offset: 0,
-      radius: 0.004,
+      radius: 0.0062,
       height: 0,
       closed: 0.25,
       open: 2.2,
@@ -462,12 +563,13 @@ export const ROSE: FloralDiagram = {
       organ: 'petal',
       count: 40,
       divergence: GOLDEN_ANGLE,
-      radius: [0.005, 0.0008],
-      height: [0.001, 0.006],
-      closed: [0.25, 0.02],
-      open: [1.45, 0.35],
+      radius: [0.006, 0.0018],
+      height: [0.0005, 0.0045],
+      closed: [0, 0],
+      open: [1.45, 0.3],
       inner: 0.45,
-      curl: [-0.8, 0.9],
+      // The innermost lean in over the middle, their tips short of the axis.
+      curl: [-0.8, 0.6],
       shape: petal({
         length: 0.04,
         width: 1.05,
@@ -477,6 +579,7 @@ export const ROSE: FloralDiagram = {
         curl: -0.8,
         excess: 0.03,
         fringe: 0.25,
+        roll: 0.45,
       }),
     },
   ],
@@ -730,6 +833,311 @@ export const DAFFODIL: FloralDiagram = {
   ],
 };
 
+/**
+ * Ox-eye daisies (story 12.3): a composite head, a capitulum. A ring of green bracts under it, about
+ * 21 white ray florets, each one strap-shaped petal, and a convex yellow disc of tiny florets packed
+ * as Vogel's spiral.
+ */
+export const DAISY: FloralDiagram = {
+  name: 'daisy',
+  rings: [
+    {
+      kind: 'spiral',
+      organ: 'sepal',
+      count: 21,
+      divergence: GOLDEN_ANGLE,
+      radius: [0.0062, 0.0055],
+      height: [-0.0006, 0],
+      closed: [0.3, 0.3],
+      open: [1.75, 1.6],
+      inner: 0.9,
+      shape: petal({ ...SEPAL, length: 0.0045, width: 0.35 }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 21,
+      offset: 0,
+      radius: 0.0068,
+      height: 0.0006,
+      closed: 0.25,
+      open: 1.5,
+      shape: petal({
+        length: 0.019,
+        width: 0.21,
+        widest: 0.55,
+        tip: 0.05,
+        notch: 0.05,
+        cup: 0.12,
+        curl: -0.15,
+      }),
+    },
+    {
+      kind: 'spiral',
+      organ: 'carpel',
+      count: 130,
+      divergence: GOLDEN_ANGLE,
+      vogel: true,
+      radius: [0.0066, 0.0002],
+      height: [0.0008, 0.0034],
+      closed: [0.25, 0],
+      open: [0.55, 0],
+      inner: 0.85,
+      shape: petal({ ...CARPEL, length: 0.0016, width: 0.7, widest: 0.5 }),
+    },
+  ],
+};
+
+/**
+ * Cornflowers (story 12.3): an urn of green bracts, about eight enlarged outer florets, each a
+ * fan whose toothed rim is the blue (a notched, frilled tip on a narrow claw), round a tuft of
+ * small purple inner florets.
+ */
+export const CORNFLOWER: FloralDiagram = {
+  name: 'cornflower',
+  rings: [
+    {
+      kind: 'spiral',
+      organ: 'sepal',
+      count: 13,
+      divergence: GOLDEN_ANGLE,
+      radius: [0.0042, 0.0036],
+      height: [-0.004, 0.001],
+      closed: [0.15, 0.1],
+      open: [0.35, 0.25],
+      inner: 0.9,
+      shape: petal({ ...SEPAL, length: 0.006, width: 0.55, cup: 0.4 }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 8,
+      offset: 0,
+      radius: 0.0035,
+      height: 0.005,
+      closed: 0.3,
+      open: 1.25,
+      shape: petal({
+        length: 0.016,
+        width: 0.7,
+        widest: 0.85,
+        tip: 0,
+        claw: 0.4,
+        notch: 0.09,
+        cup: 0.25,
+        curl: -0.2,
+        excess: 0.08,
+        fringe: 0.35,
+      }),
+    },
+    {
+      kind: 'spiral',
+      organ: 'stamen',
+      count: 26,
+      divergence: GOLDEN_ANGLE,
+      vogel: true,
+      radius: [0.003, 0.0003],
+      height: [0.005, 0.0062],
+      closed: [0.2, 0],
+      open: [0.6, 0.1],
+      inner: 0.85,
+      shape: petal({ ...STAMEN, length: 0.008, width: 0.18 }),
+    },
+  ],
+};
+
+/**
+ * Sunflowers (story 12.4): a capitulum 12 cm across. Leafy bracts under it, 34 ray florets (a
+ * Fibonacci number, as the rays usually are), and 610 disc florets packed as Vogel's spiral, each
+ * the golden angle from the last at a radius growing as the square root of its number: the
+ * parastichies, 34 and 55 spirals, are what the eye picks out.
+ */
+export const SUNFLOWER: FloralDiagram = {
+  name: 'sunflower',
+  rings: [
+    {
+      kind: 'spiral',
+      organ: 'sepal',
+      count: 34,
+      divergence: GOLDEN_ANGLE,
+      radius: [0.062, 0.052],
+      height: [-0.012, -0.003],
+      closed: [0.5, 0.4],
+      open: [1.95, 1.75],
+      inner: 0.8,
+      shape: petal({ ...SEPAL, length: 0.032, width: 0.45, widest: 0.3, tip: 0.9, curl: -0.4 }),
+    },
+    {
+      kind: 'spiral',
+      organ: 'petal',
+      count: 34,
+      divergence: GOLDEN_ANGLE,
+      radius: [0.064, 0.061],
+      height: [0, 0.002],
+      closed: [0.35, 0.3],
+      open: [1.52, 1.44],
+      inner: 0.92,
+      shape: petal({
+        length: 0.075,
+        width: 0.3,
+        widest: 0.45,
+        tip: 0.6,
+        cup: 0.18,
+        curl: -0.25,
+        excess: 0.02,
+      }),
+    },
+    {
+      kind: 'spiral',
+      organ: 'carpel',
+      count: 610,
+      divergence: GOLDEN_ANGLE,
+      vogel: true,
+      radius: [0.06, 0.0008],
+      height: [0.003, 0.011],
+      closed: [0.2, 0],
+      open: [0.25, 0],
+      inner: 0.8,
+      shape: petal({ ...CARPEL, length: 0.0042, width: 0.85, widest: 0.5, tip: 0 }),
+    },
+  ],
+};
+
+/**
+ * Moonflowers (story 12.5, _Ipomoea alba_): a long narrow tube flaring at its end into a broad flat
+ * white limb, 14 cm across, folded into five by greener bands. The bud is a twisted spire that
+ * unfurls at dusk; a few stamens and the style show at the throat.
+ */
+export const MOONFLOWER: FloralDiagram = {
+  name: 'moonflower',
+  rings: [
+    {
+      kind: 'whorl',
+      organ: 'sepal',
+      count: 5,
+      offset: 0,
+      radius: 0.0032,
+      height: 0,
+      closed: 0.12,
+      open: 0.3,
+      shape: petal({ ...SEPAL, length: 0.02, width: 0.3 }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 0,
+      offset: 0.5,
+      radius: 0.0028,
+      height: 0.0005,
+      closed: 0,
+      open: 0,
+      tube: {
+        length: 0.1,
+        rim: [0.0065, 0.07],
+        flare: 5.5,
+        waves: 5,
+        ruffle: 0.035,
+        twist: 2.6,
+        folds: 0.45,
+      },
+      shape: FLAT_PETAL,
+    },
+    {
+      kind: 'whorl',
+      organ: 'stamen',
+      count: 5,
+      offset: 0,
+      radius: 0.0015,
+      height: 0.002,
+      closed: 0.02,
+      open: 0.08,
+      shape: petal({ ...STAMEN, length: 0.1 }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'carpel',
+      count: 1,
+      offset: 0,
+      radius: 0,
+      height: 0.002,
+      closed: 0,
+      open: 0.03,
+      shape: petal({ ...CARPEL, length: 0.104, width: 0.03 }),
+    },
+  ],
+};
+
+/**
+ * Tulips (story 12.6): two whorls of three broad tepals held as a cup, incurved at their tips,
+ * six dark stamens and a three-lobed pistil. A tulip opens wide in the warmth and closes in the
+ * cool of the evening (thermonasty: van Doorn and van Meeteren).
+ */
+export const TULIP: FloralDiagram = {
+  name: 'tulip',
+  rings: [
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 3,
+      offset: 0,
+      radius: 0.0042,
+      height: 0,
+      closed: 0.06,
+      open: 0.5,
+      shape: petal({
+        length: 0.058,
+        width: 0.74,
+        widest: 0.58,
+        tip: 0.3,
+        cup: 0.55,
+        curl: 0.3,
+        excess: 0.01,
+      }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 3,
+      offset: 0.5,
+      radius: 0.0036,
+      height: 0.001,
+      closed: 0.04,
+      open: 0.42,
+      shape: petal({
+        length: 0.056,
+        width: 0.8,
+        widest: 0.58,
+        tip: 0.2,
+        cup: 0.6,
+        curl: 0.35,
+        excess: 0.01,
+      }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'stamen',
+      count: 6,
+      offset: 0,
+      radius: 0.002,
+      height: 0.002,
+      closed: 0.05,
+      open: 0.15,
+      shape: petal({ ...STAMEN, length: 0.022 }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'carpel',
+      count: 1,
+      offset: 0,
+      radius: 0,
+      height: 0.002,
+      closed: 0,
+      open: 0.02,
+      shape: petal({ ...CARPEL, length: 0.02, width: 0.35 }),
+    },
+  ],
+};
+
 export const FLOWERS = {
   lily: LILY,
   buttercup: BUTTERCUP,
@@ -740,6 +1148,11 @@ export const FLOWERS = {
   hibiscus: HIBISCUS,
   'morning glory': MORNING_GLORY,
   daffodil: DAFFODIL,
+  daisy: DAISY,
+  cornflower: CORNFLOWER,
+  sunflower: SUNFLOWER,
+  moonflower: MOONFLOWER,
+  tulip: TULIP,
 };
 export type FlowerName = keyof typeof FLOWERS;
 

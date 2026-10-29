@@ -46,7 +46,7 @@ struct Blade {
 
 @group(0) @binding(0) var<uniform> F: Field;
 @group(0) @binding(1) var<storage, read_write> blades: array<Blade>;
-@group(0) @binding(2) var<storage, read_write> args: array<atomic<u32>, 16>;
+@group(0) @binding(2) var<storage, read_write> args: array<atomic<u32>, 48>;
 @group(0) @binding(3) var<storage, read> trample: array<vec4f>;
 
 /** How much of a blade a mower takes. */
@@ -108,6 +108,12 @@ fn trampled(p: vec2f) -> vec4f {
 fn append(lod: u32, blade: Blade) {
   let index = atomicAdd(&args[lod * 4u + 1u], 1u);
   if (index < F.capacity) { blades[lod * F.capacity + index] = blade; }
+}
+
+/** Story 12.3: a near flower head, to the near list of its band and species, after the four lists. */
+fn append_near(list: u32, blade: Blade) {
+  let index = atomicAdd(&args[(4u + list) * 4u + 1u], 1u);
+  if (index < F.near_capacity) { blades[4u * F.capacity + list * F.near_capacity + index] = blade; }
 }
 
 @compute @workgroup_size(8, 8) fn place(@builtin(global_invocation_id) id: vec3u) {
@@ -206,8 +212,16 @@ fn append(lod: u32, blade: Blade) {
     // The head, at the stem's tip, facing along it; its size and its kind of flower. Not widened
     // with distance as the blades are: a flower is one thing, and fewer of them is enough.
     let size = mix(0.018, 0.035, r2.y);
-    // Its tone is its species, and a little variety within it.
-    append(3u, Blade(curve.v2, size, curve.v2 - curve.v1, facing, v0, f32(wild.species) + 0.5 * fract(r4.z * 7.31)));
+    // Its tone is its species, and a little variety within it. A near head goes to a near list of
+    // its distance band, for a flower renderer to draw whole (story 12.3).
+    let head = Blade(curve.v2, size, curve.v2 - curve.v1, facing, v0, f32(wild.species) + 0.5 * fract(r4.z * 7.31));
+    if (d < F.flower_near.x) {
+      append_near(wild.species, head);
+    } else if (d < F.flower_near.y) {
+      append_near(4u + wild.species, head);
+    } else {
+      append(3u, head);
+    }
   }
 }
 
@@ -217,8 +231,8 @@ fn append(lod: u32, blade: Blade) {
 // first.
 @compute @workgroup_size(1) fn reset() {
   let vertices = array(15u, 7u, 3u, 4u);
-  for (var lod = 0u; lod < 4u; lod++) {
-    atomicStore(&args[lod * 4u], vertices[lod]);
+  for (var lod = 0u; lod < 12u; lod++) {
+    atomicStore(&args[lod * 4u], select(0u, vertices[min(lod, 3u)], lod < 4u));
     atomicStore(&args[lod * 4u + 1u], 0u);
     atomicStore(&args[lod * 4u + 2u], 0u);
     atomicStore(&args[lod * 4u + 3u], 0u);
@@ -230,5 +244,8 @@ fn append(lod: u32, blade: Blade) {
 @compute @workgroup_size(1) fn finish() {
   for (var lod = 0u; lod < 4u; lod++) {
     atomicMin(&args[lod * 4u + 1u], F.capacity);
+  }
+  for (var list = 4u; list < 12u; list++) {
+    atomicMin(&args[list * 4u + 1u], F.near_capacity);
   }
 }

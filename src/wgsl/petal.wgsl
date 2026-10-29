@@ -12,6 +12,8 @@ struct PetalShape {
   curl: f32,
   excess: f32,
   fringe: f32,
+  roll: f32,
+  wrap: f32,
 }
 
 fn petal_half_width(s: PetalShape, u: f32) -> f32 {
@@ -38,9 +40,24 @@ fn petal_ruffle(s: PetalShape) -> vec2f {
 
 fn petal_point(s: PetalShape, u: f32, v: f32) -> vec3f {
   let h = petal_half_width(s, u);
-  let x = v * h;
+  var x = v * h;
   let y = u * (1.0 - s.notch * (1.0 - v * v) * pow(u, 6.0));
   var z = s.cup * h * v * v;
+  // The rolled margin, bent back on an arc past 0.55 of the half-width.
+  let turn = s.roll * 3.14159265 * smoothstep(0.3, 0.9, u);
+  if (turn > 1e-4 && abs(v) > 0.55 && h > 0.0) {
+    let rho = 0.45 * h / turn;
+    let w = (abs(v) - 0.55) * h;
+    let phi = w / rho;
+    x += sign(v) * (rho * sin(phi) - w);
+    z -= rho * (1.0 - cos(phi));
+  }
+  // The wrap: across on an arc, keeping its length.
+  if (s.wrap > 1e-5) {
+    let a = x * s.wrap;
+    z += (1.0 - cos(a)) / s.wrap;
+    x = sin(a) / s.wrap;
+  }
   let r = petal_ruffle(s);
   if (r.y > 0.0) {
     let band = max(s.fringe, 0.02);

@@ -123,13 +123,20 @@ export function leafSpectrum(p: Pigments, l: number): { r: number; t: number } {
  * (the sum over pigments of amount times specific absorption, cm2/ug times ug/cm2). Shared by the
  * leaf and the petal (src/gpu/optics/petal.ts), which differ only in their pigments and layers.
  */
-export function plateSpectrum(kTotal: number, layers: number, l: number): { r: number; t: number } {
+export function plateSpectrum(
+  kTotal: number,
+  layers: number,
+  l: number,
+  surface = 1,
+): { r: number; t: number } {
   const n = refractive(l);
   const N = Math.max(layers, 1.0001);
   const k = kTotal / N;
   const tau = layerTau(k);
-  const talf = tav(59, n);
-  const ralf = 1 - talf;
+  // `surface` scales the top face's own reflection, the light that never enters: a petal's conical
+  // cells (story 11.3) trap most of it.
+  const ralf = (1 - tav(59, n)) * surface;
+  const talf = 1 - ralf;
   const t12 = tav(90, n);
   const r12 = 1 - t12;
   const t21 = t12 / (n * n);

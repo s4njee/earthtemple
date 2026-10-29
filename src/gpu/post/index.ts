@@ -33,6 +33,7 @@ export {
 } from './chain.ts';
 export {
   createHdrTail,
+  NIGHT_PARAMS,
   OVERLAY_PARAMS,
   TAIL_PARAMS,
   tailSettings,
@@ -47,3 +48,4 @@ export {
   type ColourStage,
   type ColourStageValues,
 } from './colour-stage.ts';
+export { createNightVision, NIGHT_LEVELS, nightColour, photopicShare } from './night.ts';

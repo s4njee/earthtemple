@@ -18,6 +18,13 @@
  *   wavelength of such buckling shortens as the excess grows (Sharon et al.'s leaf edges); here
  *   λ = λ0 / excess^¼, with λ0 set by the band's width. No excess, no ruffle; more, more and shorter
  *   waves.
+ * - Wrap. In a bud a petal wraps the ones inside it: its cross-section is an arc of a circle,
+ *   curvature `wrap` across (in 1 / lengths), the arc length kept, so a petal wider than its
+ *   circle wraps round it. The cup's parabola is the open petal's shallower dish.
+ * - Rolled margins. A rose's petal edges roll back as it opens, which is what points its open
+ *   petals. The band outside 0.55 of the half-width bends back round an axis along the petal, at
+ *   a constant curvature, through `roll` half-turns at the edge, from nothing at a third of the way
+ *   up to all of it near the tip.
  */
 
 export type Vec3 = [number, number, number];
@@ -43,6 +50,10 @@ export interface PetalShape {
   excess: number;
   /** The band at the edge that grew more, as a fraction of the half-width. */
   fringe: number;
+  /** How far the margins roll back towards the outer face, in half-turns at the edge. */
+  roll: number;
+  /** Curvature across the petal, towards the inner face, in 1 / lengths: wrapped round a bud. */
+  wrap: number;
 }
 
 export const FLAT_PETAL: PetalShape = {
@@ -56,7 +67,12 @@ export const FLAT_PETAL: PetalShape = {
   curl: 0,
   excess: 0,
   fringe: 0.3,
+  roll: 0,
+  wrap: 0,
 };
+
+/** Where the rolled margin starts, as a fraction of the half-width. */
+const ROLL_FROM = 0.55;
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(Math.max((x - a) / (b - a), 0), 1);
@@ -98,11 +114,26 @@ export function ruffle(shape: Readonly<PetalShape>): { wavelength: number; ampli
 export function petalPoint(shape: Readonly<PetalShape>, u: number, v: number): Vec3 {
   const L = shape.length;
   const h = halfWidth(shape, u);
-  const x = v * h;
+  let x = v * h;
   // The notch pulls the middle of the tip back.
   const y = u * (1 - shape.notch * (1 - v * v) * u ** 6);
   // Out of the surface: the cup, then the ruffle in the band at the edge.
   let z = shape.cup * h * v * v;
+  // The rolled margin: the band past ROLL_FROM bends back on an arc of radius rho.
+  const turn = shape.roll * Math.PI * smoothstep(0.3, 0.9, u);
+  if (turn > 1e-4 && Math.abs(v) > ROLL_FROM && h > 0) {
+    const rho = ((1 - ROLL_FROM) * h) / turn;
+    const w = (Math.abs(v) - ROLL_FROM) * h;
+    const phi = w / rho;
+    x += Math.sign(v) * (rho * Math.sin(phi) - w);
+    z -= rho * (1 - Math.cos(phi));
+  }
+  // The wrap: across on an arc, keeping its length.
+  if (shape.wrap > 1e-5) {
+    const a = x * shape.wrap;
+    z += (1 - Math.cos(a)) / shape.wrap;
+    x = Math.sin(a) / shape.wrap;
+  }
   const r = ruffle(shape);
   if (r.amplitude > 0) {
     const band = Math.max(shape.fringe, 0.02);

@@ -1,9 +1,21 @@
+import {
+  arrange,
+  BUTTERCUP,
+  CORNFLOWER,
+  DAISY,
+  openReach,
+  POPPY,
+} from '../../gpu/flower/diagram.ts';
+import { LOOKS, STEMS } from '../../gpu/flower/looks.ts';
+import { createFlowerRenderer, type FlowerRenderer } from '../../gpu/flower/render.ts';
 import { SPECIES, SPECIES_NAMES, type SpeciesName } from '../../gpu/grass/blade.ts';
 import { cropToBottom, groundCamera } from '../../gpu/grass/camera.ts';
 import {
   ALL_PARTS,
   createGrassField,
+  DISTANCE_FORMAT,
   FLAGS,
+  nearList,
   without,
   type GrassField,
   type Lighting,
@@ -16,7 +28,7 @@ import { DOSE_PARAMS, dosed, heldDose } from '../../gpu/safety/dose.ts';
 import { createShader, withChunks } from '../../gpu/shader.ts';
 import { createUniformBuffer, defineUniformStruct } from '../../gpu/uniforms.ts';
 import { createTrample, type Brush } from '../../gpu/wind/trample.ts';
-import { defineEffect } from '../types.ts';
+import { defineEffect, type EffectMeta } from '../types.ts';
 import dofShader from './dof.wgsl';
 import { meta } from './meta.ts';
 import pollenShader from './pollen.wgsl';
@@ -230,396 +242,482 @@ const POLLEN = 700;
 const HEIGHT = 1.6;
 const WIND: readonly [number, number] = [0.42 / 1.002, 0.91 / 1.002];
 
-export const effect = defineEffect({
-  meta,
-  params: {
-    ...DOSE_PARAMS,
-    time: { type: 'select', default: 'midday', options: Object.keys(TIMES) },
-    grass: { type: 'select', default: 'meadow', options: SPECIES_NAMES },
-    density: { type: 'number', default: 0.8, min: 0.1, max: 1, step: 0.01 },
-    flowers: { type: 'number', default: 0.35, min: 0, max: 1, step: 0.01, label: 'wildflowers' },
-    blur: { type: 'number', default: 1, min: 0, max: 2, step: 0.05, label: 'depth of field' },
-    drift: { type: 'number', default: 0.12, min: 0, max: 0.4, step: 0.01, label: 'drift, m/s' },
-    walk: { type: 'boolean', default: false, label: 'walk through' },
-    ablate: { type: 'select', default: 'none', options: ABLATIONS, label: 'without' },
-    distance: {
-      type: 'select',
-      default: 'canopy',
-      options: ['canopy', 'shells'],
-      label: 'far grass',
+/**
+ * Story 12.3's wildflowers, in the order of the grass field's drift maps (src/gpu/grass/
+ * wildflowers.ts): the near ones are drawn whole, from their floral diagrams.
+ */
+const FIELD_FLOWERS = [
+  { diagram: DAISY, look: LOOKS.daisy, stem: STEMS.daisy },
+  { diagram: BUTTERCUP, look: LOOKS.buttercup, stem: STEMS.buttercup },
+  { diagram: POPPY, look: LOOKS.poppy, stem: STEMS.poppy },
+  { diagram: CORNFLOWER, look: LOOKS.cornflower, stem: STEMS.cornflower },
+];
+
+export interface MeadowVariant {
+  /**
+   * Story 12.3: the nearest flower heads drawn whole, from their floral diagrams, on the stems the
+   * grass field grew and swayed; further off they are its dots.
+   */
+  wholeFlowers?: boolean;
+  /** The wildflowers' default amount. */
+  flowers?: number;
+}
+
+/** The meadow, or a variant of it (story 12.3's wildflower meadow). */
+export function meadowEffect(meta: EffectMeta, variant: MeadowVariant = {}) {
+  return defineEffect({
+    meta,
+    params: {
+      ...DOSE_PARAMS,
+      time: { type: 'select', default: 'midday', options: Object.keys(TIMES) },
+      grass: { type: 'select', default: 'meadow', options: SPECIES_NAMES },
+      density: { type: 'number', default: 0.8, min: 0.1, max: 1, step: 0.01 },
+      flowers: {
+        type: 'number',
+        default: variant.flowers ?? 0.35,
+        min: 0,
+        max: 1,
+        step: 0.01,
+        label: 'wildflowers',
+      },
+      blur: { type: 'number', default: 1, min: 0, max: 2, step: 0.05, label: 'depth of field' },
+      drift: { type: 'number', default: 0.12, min: 0, max: 0.4, step: 0.01, label: 'drift, m/s' },
+      walk: { type: 'boolean', default: false, label: 'walk through' },
+      ablate: { type: 'select', default: 'none', options: ABLATIONS, label: 'without' },
+      distance: {
+        type: 'select',
+        default: 'canopy',
+        options: ['canopy', 'shells'],
+        label: 'far grass',
+      },
+      seed: { type: 'number', default: 3, min: 1, max: 999, step: 1 },
+      ...TAIL_PARAMS,
+      bloom: { ...TAIL_PARAMS.bloom, default: 0.35 },
+      bloomThreshold: { ...TAIL_PARAMS.bloomThreshold, default: 1.6 },
     },
-    seed: { type: 'number', default: 3, min: 1, max: 999, step: 1 },
-    ...TAIL_PARAMS,
-    bloom: { ...TAIL_PARAMS.bloom, default: 0.35 },
-    bloomThreshold: { ...TAIL_PARAMS.bloomThreshold, default: 1.6 },
-  },
-  presets: {
-    midday: {},
-    'golden hour': { time: 'golden hour' },
-    dusk: { time: 'dusk' },
-    sparse: { density: 0.45, flowers: 0.3 },
-    'walk through': { walk: true },
-  },
+    presets: {
+      midday: {},
+      'golden hour': { time: 'golden hour' },
+      dusk: { time: 'dusk' },
+      sparse: { density: 0.45, flowers: 0.3 },
+      'walk through': { walk: true },
+    },
 
-  async create({ device, format, hdr, canvas, params, profiler }) {
-    const tail = createHdrTail(device, { format, hdr, label: 'meadow' });
-    const sceneFormat = tail.scene.format;
-    let samples = 0;
-    let field: GrassField | undefined;
-    let strip: GrassStrip | undefined;
-    const build = (n: number) => {
-      field?.destroy();
-      strip?.destroy();
-      samples = n;
-      field = createGrassField(device, {
-        capacity: CAPACITY,
-        format: sceneFormat,
-        sampleCount: n,
-        distance: true,
-        label: 'meadow',
-      });
-      strip = createGrassStrip(device, {
-        format: sceneFormat,
-        samples: n,
-        distance: true,
-        label: 'meadow strip',
-      });
-    };
-    build(4);
-    const trample = createTrample(device, { size: 256, cell: 0.06, tau: 2.5 });
-    const pointer = trackPointer(canvas);
-
-    const skyUniforms = createUniformBuffer(device, SkyParams, 'meadow sky');
-    const skyModule = createShader(
-      device,
-      withChunks(skyShader, { 'sky-params.wgsl': SkyParams.wgsl }),
-    );
-    const skyPipeline = device.createRenderPipeline({
-      label: 'meadow sky',
-      layout: 'auto',
-      vertex: { module: skyModule, entryPoint: 'sky_vs' },
-      fragment: { module: skyModule, entryPoint: 'sky_fs', targets: [{ format: sceneFormat }] },
-    });
-    const skyGroup = device.createBindGroup({
-      layout: skyPipeline.getBindGroupLayout(0),
-      entries: [{ binding: 0, resource: { buffer: skyUniforms.buffer } }],
-    });
-
-    const dofUniforms = createUniformBuffer(device, DofParams, 'meadow dof');
-    const dofModule = createShader(
-      device,
-      withChunks(dofShader, { 'dof-params.wgsl': DofParams.wgsl }),
-    );
-    const dofPipeline = device.createRenderPipeline({
-      label: 'meadow dof',
-      layout: 'auto',
-      vertex: { module: dofModule, entryPoint: 'dof_vs' },
-      fragment: { module: dofModule, entryPoint: 'dof_fs', targets: [{ format: sceneFormat }] },
-    });
-
-    const pollenUniforms = createUniformBuffer(device, PollenParams, 'meadow pollen');
-    const pollenModule = createShader(
-      device,
-      withChunks(pollenShader, { 'pollen-params.wgsl': PollenParams.wgsl }),
-    );
-    const add: GPUBlendComponent = { srcFactor: 'one', dstFactor: 'one' };
-    const pollenPipeline = device.createRenderPipeline({
-      label: 'meadow pollen',
-      layout: 'auto',
-      vertex: { module: pollenModule, entryPoint: 'pollen_vs' },
-      fragment: {
-        module: pollenModule,
-        entryPoint: 'pollen_fs',
-        targets: [{ format: sceneFormat, blend: { color: add, alpha: add } }],
-      },
-      primitive: { topology: 'triangle-strip' },
-    });
-
-    let sharp: GPUTexture | undefined;
-    let width = 1;
-    let height = 1;
-    let clock = 0;
-    let lastHit: [number, number] | undefined;
-    let groupsFor: { key: string; dof: GPUBindGroup; pollen: GPUBindGroup } | undefined;
-
-    return {
-      resize(w, h) {
-        width = w;
-        height = h;
-        tail.resize(w, h);
-        sharp?.destroy();
-        sharp = device.createTexture({
-          label: 'meadow sharp',
-          size: [w, h],
-          format: sceneFormat,
-          usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-        });
-        groupsFor = undefined;
-      },
-      frame(time, encoder, target) {
-        const wanted = params.ablate === 'antialias' ? 1 : 4;
-        if (wanted !== samples) {
-          build(wanted);
-          groupsFor = undefined;
-        }
-        clock += time.delta;
-        const dose = time.still ? heldDose(params.dose) : params.dose;
-        const t = TIMES[params.time] ?? TIMES.midday!;
-        const ablate = params.ablate as (typeof ABLATIONS)[number];
-        const flags = (PARTS as readonly string[]).includes(ablate)
-          ? without(ablate as Part)
-          : ALL_PARTS;
-
-        // The camera drifts sideways, slowly; walking through moves it forwards.
-        const x = params.drift * clock;
-        const z = params.walk ? WALK * clock : 0;
-        const view = groundCamera({
-          aspect: width / height,
-          eyeHeight: t.eye,
-          horizon: t.horizon,
-          bottomDistance: t.bottom,
-          start: t.start,
-          near: 0.05,
-          far: 3000,
-          x,
-          z,
-        });
-        // The rows the grass can reach: the tallest stem at the front of the field, or the horizon,
-        // which grass lower than the eye rises towards with distance.
-        const species = SPECIES[params.grass as SpeciesName] ?? SPECIES.meadow;
-        const tallest = species.height[1] * HEIGHT * 1.3 * species.stemHeight;
-        const reach = Math.max(
-          t.horizon,
-          view.scale[1] * ((tallest - t.eye) / t.start) + t.horizon,
-        );
-        const rows = Math.min(height, Math.ceil(((Math.min(reach, 1) + 1.04) / 2) * height));
-        const top = (2 * rows) / height - 1;
-        const camera = rows >= height ? view : cropToBottom(view, top);
-        strip!.resize(width, rows);
-
-        // The pointer brushes the grass: a ray to half the canopy's height.
-        const brushes: Brush[] = [];
-        const p = pointer.state;
-        const canopy = ((species.height[0] + species.height[1]) / 2) * HEIGHT;
-        if (p.inside && !time.still) {
-          const nx = 2 * p.x - 1;
-          const ny = 1 - 2 * p.y;
-          const dir = [nx / view.scale[0], (ny - t.horizon) / view.scale[1], 1] as const;
-          const along = (0.45 * canopy - t.eye) / dir[1];
-          if (dir[1] < 0 && along > 0 && along < 25) {
-            const hit: [number, number] = [x + dir[0] * along, z + along];
-            const moved = lastHit ? Math.hypot(hit[0] - lastHit[0], hit[1] - lastHit[1]) : 0;
-            const speed = moved / Math.max(time.delta, 1e-3);
-            const radius = t.eye < 1 ? 0.25 : 0.35;
-            brushes.push(
-              speed > 0.2 && lastHit
-                ? {
-                    x: hit[0],
-                    z: hit[1],
-                    radius,
-                    strength: 1.3,
-                    along: [(hit[0] - lastHit[0]) / moved, (hit[1] - lastHit[1]) / moved],
-                  }
-                : { x: hit[0], z: hit[1], radius, strength: 0.5 },
-            );
-            lastHit = hit;
-          }
-        } else {
-          lastHit = undefined;
-        }
-        trample.step(encoder, time.delta, x, z + 7, brushes);
-
-        field!.update(
-          camera,
-          {
-            species,
-            density: params.density,
-            heightScale: HEIGHT,
-            clump: 0.18,
-            lod0: t.lod0,
-            lod1: t.lod1,
-            fade: t.fade,
-            reach: t.reach,
-            wind: {
-              dir: WIND,
-              lean: dosed(dose, 0, 0.12, 0.28),
-              // A held frame is a lull: no gust bending the field.
-              gust: time.still ? 0 : dosed(dose, 0, 0.32, 0.75),
-              speed: dosed(dose, 1.2, 3, 5.5),
-              scale: 4.5,
-              flutter: dosed(dose, 0, 0.05, 0.1),
-            },
-            pointer: [0, -2, 0.1, 0],
-            trample,
-            seed: params.seed,
-            minPixels: 0.04,
-            flags,
-            flowers: ablate === 'flowers' ? 0 : params.flowers,
-            shells: params.distance === 'shells',
-          },
-          clock,
-          { width, height: rows },
-        );
-        field!.light(t.light);
-        field!.compute(encoder, profiler.pass('place'));
-
-        const grass = encoder.beginRenderPass({
-          label: 'meadow grass',
-          colorAttachments: [
-            {
-              view: strip!.colour,
-              resolveTarget: strip!.resolveTarget,
-              loadOp: 'clear',
-              clearValue: { r: 0, g: 0, b: 0, a: 0 },
-              storeOp: samples > 1 ? 'discard' : 'store',
-            },
-            {
-              view: strip!.distance!,
-              resolveTarget: strip!.distanceResolveTarget,
-              loadOp: 'clear',
-              clearValue: { r: 1e4, g: 0, b: 0, a: 0 },
-              storeOp: samples > 1 ? 'discard' : 'store',
-            },
-          ],
-          depthStencilAttachment: {
-            view: strip!.depth,
-            depthLoadOp: 'clear',
-            depthClearValue: 1,
-            depthStoreOp: 'discard',
-          },
-          timestampWrites: profiler.pass('grass'),
-        });
-        field!.draw(grass);
-        grass.end();
-
-        // The sky, then the grass over it, sharp; then depth of field into the scene.
-        const blur = ablate === 'depth of field' ? 0 : params.blur;
-        const scale = height / 1080;
-        const focusBlur = t.aperture * blur * scale;
-        const stripTop = height - rows;
-        const widestBlur = focusBlur * Math.max(1, t.focus / t.start - 1);
-        // Under two pixels of blur anywhere in view, the pass is not worth its cost.
-        const blurring = focusBlur > 0.05 && Math.min(18 * scale, widestBlur) >= 2;
-        const into = blurring ? sharp!.createView() : tail.scene.view;
-        const light = t.light;
-        skyUniforms.set({
-          zenith: t.zenith,
-          sx: view.scale[0],
-          haze: light.horizon ?? light.sky,
-          sy: view.scale[1],
-          sun_dir: light.sunDir,
-          horizon: t.horizon,
-          sun: light.sun,
-          glow: t.glow,
-          eye: view.eye,
-          time: clock,
-          wind_dir: WIND,
-          cloud_depth: (flags & FLAGS.clouds) !== 0 ? (light.cloudDepth ?? 0) : 0,
-          cloud_scale: light.cloudScale ?? 260,
-          cloud_speed: light.cloudSpeed ?? 4,
-          hedge: t.hedge,
-          hedge_colour: t.hedgeColour,
-        });
-        skyUniforms.upload();
-        const sky = encoder.beginRenderPass({
-          label: 'meadow sky',
-          colorAttachments: [{ view: into, loadOp: 'clear', storeOp: 'store' }],
-          timestampWrites: profiler.pass('sky'),
-        });
-        sky.setPipeline(skyPipeline);
-        sky.setBindGroup(0, skyGroup);
-        sky.draw(3);
-        sky.end();
-        strip!.composite(encoder, into, height, true);
-
-        const key = `${sharp!.label}${width}x${height}x${rows}x${samples}`;
-        if (!groupsFor || groupsFor.key !== key) {
-          groupsFor = {
-            key,
-            dof: device.createBindGroup({
-              layout: dofPipeline.getBindGroupLayout(0),
-              entries: [
-                { binding: 0, resource: { buffer: dofUniforms.buffer } },
-                { binding: 1, resource: sharp!.createView() },
-                { binding: 2, resource: strip!.distanceResolve! },
-              ],
-            }),
-            pollen: device.createBindGroup({
-              layout: pollenPipeline.getBindGroupLayout(0),
-              entries: [
-                { binding: 0, resource: { buffer: pollenUniforms.buffer } },
-                { binding: 1, resource: strip!.distanceResolve! },
-              ],
-            }),
-          };
-        }
-        // The widest blur in view: the nearest grass, or the sky. Gathering wider is wasted.
-        const widest = focusBlur * Math.max(1, t.focus / t.start - 1);
-        const maxRadius = Math.min(18 * scale, widest);
-        if (blurring) {
-          dofUniforms.set({
-            focus: t.focus,
-            aperture: focusBlur,
-            max_radius: maxRadius,
-            strip_top: stripTop,
-          });
-          dofUniforms.upload();
-          const dof = encoder.beginRenderPass({
-            label: 'meadow dof',
-            colorAttachments: [{ view: tail.scene.view, loadOp: 'clear', storeOp: 'store' }],
-            timestampWrites: profiler.pass('focus'),
-          });
-          dof.setPipeline(dofPipeline);
-          dof.setBindGroup(0, groupsFor.dof);
-          dof.draw(3);
-          dof.end();
-        }
-
-        const pollen = ablate === 'pollen' ? 0 : t.pollen;
-        if (pollen > 0) {
-          pollenUniforms.set({
-            view_proj: view.viewProj,
-            eye: view.eye,
-            time: clock,
-            sun_dir: light.sunDir,
-            focal: (view.scale[0] * width) / 2,
-            sun: light.sun,
-            focus: t.focus,
-            sky: light.sky,
-            aperture: focusBlur,
-            wind: WIND,
-            viewport: [width, height],
-            max_radius: maxRadius,
-            strip_top: stripTop,
-            amount: pollen,
-          });
-          pollenUniforms.upload();
-          const motes = encoder.beginRenderPass({
-            label: 'meadow pollen',
-            colorAttachments: [{ view: tail.scene.view, loadOp: 'load', storeOp: 'store' }],
-          });
-          motes.setPipeline(pollenPipeline);
-          motes.setBindGroup(0, groupsFor.pollen);
-          motes.draw(4, POLLEN);
-          motes.end();
-        }
-        tail.encode(encoder, target, time, params, profiler);
-      },
-      stats() {
-        const [near, mid, far, flowers] = field!.counts();
-        return { near, mid, far, flowers, cells: field!.cells };
-      },
-      destroy() {
-        pointer.destroy();
+    async create({ device, format, hdr, canvas, params, profiler }) {
+      const tail = createHdrTail(device, { format, hdr, label: 'meadow' });
+      const sceneFormat = tail.scene.format;
+      let samples = 0;
+      let field: GrassField | undefined;
+      let strip: GrassStrip | undefined;
+      let flowers: FlowerRenderer | undefined;
+      const build = (n: number) => {
         field?.destroy();
         strip?.destroy();
-        trample.destroy();
-        sharp?.destroy();
-        skyUniforms.destroy();
-        dofUniforms.destroy();
-        pollenUniforms.destroy();
-        tail.destroy();
-      },
-    };
-  },
-});
+        flowers?.destroy();
+        samples = n;
+        field = createGrassField(device, {
+          capacity: CAPACITY,
+          format: sceneFormat,
+          sampleCount: n,
+          distance: true,
+          nearHeads: variant.wholeFlowers,
+          label: 'meadow',
+        });
+        if (variant.wholeFlowers) {
+          flowers = createFlowerRenderer(device, {
+            format: sceneFormat,
+            sampleCount: n,
+            distance: DISTANCE_FORMAT,
+            label: 'meadow flowers',
+            species: FIELD_FLOWERS.map(({ diagram, stem }) => ({ diagram, stem })),
+          });
+          flowers.setLooks(
+            FIELD_FLOWERS.map(({ diagram, look, stem }) => ({
+              look,
+              stem,
+              reach: openReach(arrange(diagram)),
+            })),
+          );
+        }
+        strip = createGrassStrip(device, {
+          format: sceneFormat,
+          samples: n,
+          distance: true,
+          label: 'meadow strip',
+        });
+      };
+      build(4);
+      const trample = createTrample(device, { size: 256, cell: 0.06, tau: 2.5 });
+      const pointer = trackPointer(canvas);
+
+      const skyUniforms = createUniformBuffer(device, SkyParams, 'meadow sky');
+      const skyModule = createShader(
+        device,
+        withChunks(skyShader, { 'sky-params.wgsl': SkyParams.wgsl }),
+      );
+      const skyPipeline = device.createRenderPipeline({
+        label: 'meadow sky',
+        layout: 'auto',
+        vertex: { module: skyModule, entryPoint: 'sky_vs' },
+        fragment: { module: skyModule, entryPoint: 'sky_fs', targets: [{ format: sceneFormat }] },
+      });
+      const skyGroup = device.createBindGroup({
+        layout: skyPipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: skyUniforms.buffer } }],
+      });
+
+      const dofUniforms = createUniformBuffer(device, DofParams, 'meadow dof');
+      const dofModule = createShader(
+        device,
+        withChunks(dofShader, { 'dof-params.wgsl': DofParams.wgsl }),
+      );
+      const dofPipeline = device.createRenderPipeline({
+        label: 'meadow dof',
+        layout: 'auto',
+        vertex: { module: dofModule, entryPoint: 'dof_vs' },
+        fragment: { module: dofModule, entryPoint: 'dof_fs', targets: [{ format: sceneFormat }] },
+      });
+
+      const pollenUniforms = createUniformBuffer(device, PollenParams, 'meadow pollen');
+      const pollenModule = createShader(
+        device,
+        withChunks(pollenShader, { 'pollen-params.wgsl': PollenParams.wgsl }),
+      );
+      const add: GPUBlendComponent = { srcFactor: 'one', dstFactor: 'one' };
+      const pollenPipeline = device.createRenderPipeline({
+        label: 'meadow pollen',
+        layout: 'auto',
+        vertex: { module: pollenModule, entryPoint: 'pollen_vs' },
+        fragment: {
+          module: pollenModule,
+          entryPoint: 'pollen_fs',
+          targets: [{ format: sceneFormat, blend: { color: add, alpha: add } }],
+        },
+        primitive: { topology: 'triangle-strip' },
+      });
+
+      let sharp: GPUTexture | undefined;
+      let width = 1;
+      let height = 1;
+      let clock = 0;
+      let lastHit: [number, number] | undefined;
+      let groupsFor: { key: string; dof: GPUBindGroup; pollen: GPUBindGroup } | undefined;
+
+      return {
+        resize(w, h) {
+          width = w;
+          height = h;
+          tail.resize(w, h);
+          sharp?.destroy();
+          sharp = device.createTexture({
+            label: 'meadow sharp',
+            size: [w, h],
+            format: sceneFormat,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+          });
+          groupsFor = undefined;
+        },
+        frame(time, encoder, target) {
+          const wanted = params.ablate === 'antialias' ? 1 : 4;
+          if (wanted !== samples) {
+            build(wanted);
+            groupsFor = undefined;
+          }
+          clock += time.delta;
+          const dose = time.still ? heldDose(params.dose) : params.dose;
+          const t = TIMES[params.time] ?? TIMES.midday!;
+          const ablate = params.ablate as (typeof ABLATIONS)[number];
+          const flags = (PARTS as readonly string[]).includes(ablate)
+            ? without(ablate as Part)
+            : ALL_PARTS;
+
+          // The camera drifts sideways, slowly; walking through moves it forwards.
+          const x = params.drift * clock;
+          const z = params.walk ? WALK * clock : 0;
+          const view = groundCamera({
+            aspect: width / height,
+            eyeHeight: t.eye,
+            horizon: t.horizon,
+            bottomDistance: t.bottom,
+            start: t.start,
+            near: 0.05,
+            far: 3000,
+            x,
+            z,
+          });
+          // The rows the grass can reach: the tallest stem at the front of the field, or the horizon,
+          // which grass lower than the eye rises towards with distance.
+          const species = SPECIES[params.grass as SpeciesName] ?? SPECIES.meadow;
+          const tallest = species.height[1] * HEIGHT * 1.3 * species.stemHeight;
+          const reach = Math.max(
+            t.horizon,
+            view.scale[1] * ((tallest - t.eye) / t.start) + t.horizon,
+          );
+          const rows = Math.min(height, Math.ceil(((Math.min(reach, 1) + 1.04) / 2) * height));
+          const top = (2 * rows) / height - 1;
+          const camera = rows >= height ? view : cropToBottom(view, top);
+          strip!.resize(width, rows);
+
+          // The pointer brushes the grass: a ray to half the canopy's height.
+          const brushes: Brush[] = [];
+          const p = pointer.state;
+          const canopy = ((species.height[0] + species.height[1]) / 2) * HEIGHT;
+          if (p.inside && !time.still) {
+            const nx = 2 * p.x - 1;
+            const ny = 1 - 2 * p.y;
+            const dir = [nx / view.scale[0], (ny - t.horizon) / view.scale[1], 1] as const;
+            const along = (0.45 * canopy - t.eye) / dir[1];
+            if (dir[1] < 0 && along > 0 && along < 25) {
+              const hit: [number, number] = [x + dir[0] * along, z + along];
+              const moved = lastHit ? Math.hypot(hit[0] - lastHit[0], hit[1] - lastHit[1]) : 0;
+              const speed = moved / Math.max(time.delta, 1e-3);
+              const radius = t.eye < 1 ? 0.25 : 0.35;
+              brushes.push(
+                speed > 0.2 && lastHit
+                  ? {
+                      x: hit[0],
+                      z: hit[1],
+                      radius,
+                      strength: 1.3,
+                      along: [(hit[0] - lastHit[0]) / moved, (hit[1] - lastHit[1]) / moved],
+                    }
+                  : { x: hit[0], z: hit[1], radius, strength: 0.5 },
+              );
+              lastHit = hit;
+            }
+          } else {
+            lastHit = undefined;
+          }
+          trample.step(encoder, time.delta, x, z + 7, brushes);
+          // Story 12.3: heads drawn whole out to where one 5 cm across is 4 px, nearer ones finer.
+          const focal = (view.scale[0] * width) / 2;
+          const far = variant.wholeFlowers ? Math.min(14, (0.05 * focal) / 4) : 0;
+          const near: [number, number] = [Math.min(far, 2.2 * t.start), far];
+
+          field!.update(
+            camera,
+            {
+              species,
+              density: params.density,
+              heightScale: HEIGHT,
+              clump: 0.18,
+              lod0: t.lod0,
+              lod1: t.lod1,
+              fade: t.fade,
+              reach: t.reach,
+              wind: {
+                dir: WIND,
+                lean: dosed(dose, 0, 0.12, 0.28),
+                // A held frame is a lull: no gust bending the field.
+                gust: time.still ? 0 : dosed(dose, 0, 0.32, 0.75),
+                speed: dosed(dose, 1.2, 3, 5.5),
+                scale: 4.5,
+                flutter: dosed(dose, 0, 0.05, 0.1),
+              },
+              pointer: [0, -2, 0.1, 0],
+              trample,
+              seed: params.seed,
+              minPixels: 0.04,
+              flags,
+              flowers: ablate === 'flowers' ? 0 : params.flowers,
+              shells: params.distance === 'shells',
+              flowerNear: near,
+            },
+            clock,
+            { width, height: rows },
+          );
+          field!.light(t.light);
+          if (flowers) {
+            // The near heads in two bands, each drawn with the levels of detail for its nearest.
+            const capacity = field!.capacity;
+            flowers.prepare(
+              {
+                viewProj: camera.viewProj,
+                eye: view.eye,
+                time: clock,
+                sun: [...t.light.sunDir, 1],
+                sunColour: t.light.sun,
+                skyTop: t.light.sky,
+                skyBottom: t.light.sky.map((c) => c * 0.35) as [number, number, number],
+                ambient: 1,
+              },
+              [],
+              {
+                blades: field!.blades,
+                args: field!.args,
+                bands: [focal / t.start, focal / near[0]].map((perMetre, band) => ({
+                  perMetre,
+                  lists: [0, 1, 2, 3].map((species) => nearList(capacity, band, species)),
+                })),
+                species: [0, 1, 2, 3],
+              },
+            );
+          }
+          field!.compute(encoder, profiler.pass('place'));
+          flowers?.computeField(encoder);
+
+          const grass = encoder.beginRenderPass({
+            label: 'meadow grass',
+            colorAttachments: [
+              {
+                view: strip!.colour,
+                resolveTarget: strip!.resolveTarget,
+                loadOp: 'clear',
+                clearValue: { r: 0, g: 0, b: 0, a: 0 },
+                storeOp: samples > 1 ? 'discard' : 'store',
+              },
+              {
+                view: strip!.distance!,
+                resolveTarget: strip!.distanceResolveTarget,
+                loadOp: 'clear',
+                clearValue: { r: 1e4, g: 0, b: 0, a: 0 },
+                storeOp: samples > 1 ? 'discard' : 'store',
+              },
+            ],
+            depthStencilAttachment: {
+              view: strip!.depth,
+              depthLoadOp: 'clear',
+              depthClearValue: 1,
+              depthStoreOp: 'discard',
+            },
+            timestampWrites: profiler.pass('grass'),
+          });
+          field!.draw(grass);
+          flowers?.draw(grass);
+          grass.end();
+
+          // The sky, then the grass over it, sharp; then depth of field into the scene.
+          const blur = ablate === 'depth of field' ? 0 : params.blur;
+          const scale = height / 1080;
+          const focusBlur = t.aperture * blur * scale;
+          const stripTop = height - rows;
+          const widestBlur = focusBlur * Math.max(1, t.focus / t.start - 1);
+          // Under two pixels of blur anywhere in view, the pass is not worth its cost.
+          const blurring = focusBlur > 0.05 && Math.min(18 * scale, widestBlur) >= 2;
+          const into = blurring ? sharp!.createView() : tail.scene.view;
+          const light = t.light;
+          skyUniforms.set({
+            zenith: t.zenith,
+            sx: view.scale[0],
+            haze: light.horizon ?? light.sky,
+            sy: view.scale[1],
+            sun_dir: light.sunDir,
+            horizon: t.horizon,
+            sun: light.sun,
+            glow: t.glow,
+            eye: view.eye,
+            time: clock,
+            wind_dir: WIND,
+            cloud_depth: (flags & FLAGS.clouds) !== 0 ? (light.cloudDepth ?? 0) : 0,
+            cloud_scale: light.cloudScale ?? 260,
+            cloud_speed: light.cloudSpeed ?? 4,
+            hedge: t.hedge,
+            hedge_colour: t.hedgeColour,
+          });
+          skyUniforms.upload();
+          const sky = encoder.beginRenderPass({
+            label: 'meadow sky',
+            colorAttachments: [{ view: into, loadOp: 'clear', storeOp: 'store' }],
+            timestampWrites: profiler.pass('sky'),
+          });
+          sky.setPipeline(skyPipeline);
+          sky.setBindGroup(0, skyGroup);
+          sky.draw(3);
+          sky.end();
+          strip!.composite(encoder, into, height, true);
+
+          const key = `${sharp!.label}${width}x${height}x${rows}x${samples}`;
+          if (!groupsFor || groupsFor.key !== key) {
+            groupsFor = {
+              key,
+              dof: device.createBindGroup({
+                layout: dofPipeline.getBindGroupLayout(0),
+                entries: [
+                  { binding: 0, resource: { buffer: dofUniforms.buffer } },
+                  { binding: 1, resource: sharp!.createView() },
+                  { binding: 2, resource: strip!.distanceResolve! },
+                ],
+              }),
+              pollen: device.createBindGroup({
+                layout: pollenPipeline.getBindGroupLayout(0),
+                entries: [
+                  { binding: 0, resource: { buffer: pollenUniforms.buffer } },
+                  { binding: 1, resource: strip!.distanceResolve! },
+                ],
+              }),
+            };
+          }
+          // The widest blur in view: the nearest grass, or the sky. Gathering wider is wasted.
+          const widest = focusBlur * Math.max(1, t.focus / t.start - 1);
+          const maxRadius = Math.min(18 * scale, widest);
+          if (blurring) {
+            dofUniforms.set({
+              focus: t.focus,
+              aperture: focusBlur,
+              max_radius: maxRadius,
+              strip_top: stripTop,
+            });
+            dofUniforms.upload();
+            const dof = encoder.beginRenderPass({
+              label: 'meadow dof',
+              colorAttachments: [{ view: tail.scene.view, loadOp: 'clear', storeOp: 'store' }],
+              timestampWrites: profiler.pass('focus'),
+            });
+            dof.setPipeline(dofPipeline);
+            dof.setBindGroup(0, groupsFor.dof);
+            dof.draw(3);
+            dof.end();
+          }
+
+          const pollen = ablate === 'pollen' ? 0 : t.pollen;
+          if (pollen > 0) {
+            pollenUniforms.set({
+              view_proj: view.viewProj,
+              eye: view.eye,
+              time: clock,
+              sun_dir: light.sunDir,
+              focal: (view.scale[0] * width) / 2,
+              sun: light.sun,
+              focus: t.focus,
+              sky: light.sky,
+              aperture: focusBlur,
+              wind: WIND,
+              viewport: [width, height],
+              max_radius: maxRadius,
+              strip_top: stripTop,
+              amount: pollen,
+            });
+            pollenUniforms.upload();
+            const motes = encoder.beginRenderPass({
+              label: 'meadow pollen',
+              colorAttachments: [{ view: tail.scene.view, loadOp: 'load', storeOp: 'store' }],
+            });
+            motes.setPipeline(pollenPipeline);
+            motes.setBindGroup(0, groupsFor.pollen);
+            motes.draw(4, POLLEN);
+            motes.end();
+          }
+          tail.encode(encoder, target, time, params, profiler);
+        },
+        stats() {
+          const [near, mid, far, flowers] = field!.counts();
+          return { near, mid, far, flowers, cells: field!.cells };
+        },
+        destroy() {
+          pointer.destroy();
+          field?.destroy();
+          strip?.destroy();
+          flowers?.destroy();
+          trample.destroy();
+          sharp?.destroy();
+          skyUniforms.destroy();
+          dofUniforms.destroy();
+          pollenUniforms.destroy();
+          tail.destroy();
+        },
+      };
+    },
+  });
+}
+
+export const effect = meadowEffect(meta);

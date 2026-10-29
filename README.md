@@ -26,17 +26,24 @@ npm run deploy     # build and upload dist/ to Cloudflare Pages (project earthte
 
 ## Effects
 
-| Id               | What                                                                                                                                                                                            | Tier |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| `hello`          | The smallest effect: a strip of flat 2D blades swaying in a wave of wind, one instanced draw                                                                                                    | A    |
-| `grass-footer`   | A strip of grass along the bottom of the page: blades placed, clumped, bent by gusts and culled in compute, drawn with indirect draws; the pointer parts it                                     | B    |
-| `meadow`         | A meadow at eye level to the horizon: pigment-coloured grass lit through the blades, gusts and cloud shadows, wildflowers, pollen, depth of field; the pointer brushes a path that springs back | C    |
-| `lawn`           | A lawn seen from above at an angle: the pointer brushes and treads it, and the grass stands back up over seconds                                                                                | B    |
-| `mowing`         | The lawn mown in rows, as a progress bar or by dragging: stripes from stubble laid towards and away from the viewer, not painted                                                                | B    |
-| `grass-growth`   | A lawn growing in from bare soil, over time or as the page scrolls: patches sprout and spread until they meet                                                                                   | B    |
-| `grass-edges`    | Grass growing along the top edges of the page's headings, cards and buttons, swaying and parting around the pointer                                                                             | A    |
-| `fur-text`       | A heading grown over with fur, grass or moss by shells, lit as strands, which the pointer combs                                                                                                 | B    |
-| `flower-opening` | One flower opening on its swaying stem, from its floral diagram: nine flowers whose petals are grown surfaces, coloured by their pigments and opened by differential growth                     | A    |
+| Id                  | What                                                                                                                                                                                            | Tier |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| `hello`             | The smallest effect: a strip of flat 2D blades swaying in a wave of wind, one instanced draw                                                                                                    | A    |
+| `grass-footer`      | A strip of grass along the bottom of the page: blades placed, clumped, bent by gusts and culled in compute, drawn with indirect draws; the pointer parts it                                     | B    |
+| `meadow`            | A meadow at eye level to the horizon: pigment-coloured grass lit through the blades, gusts and cloud shadows, wildflowers, pollen, depth of field; the pointer brushes a path that springs back | C    |
+| `lawn`              | A lawn seen from above at an angle: the pointer brushes and treads it, and the grass stands back up over seconds                                                                                | B    |
+| `mowing`            | The lawn mown in rows, as a progress bar or by dragging: stripes from stubble laid towards and away from the viewer, not painted                                                                | B    |
+| `grass-growth`      | A lawn growing in from bare soil, over time or as the page scrolls: patches sprout and spread until they meet                                                                                   | B    |
+| `grass-edges`       | Grass growing along the top edges of the page's headings, cards and buttons, swaying and parting around the pointer                                                                             | A    |
+| `fur-text`          | A heading grown over with fur, grass or moss by shells, lit as strands, which the pointer combs                                                                                                 | B    |
+| `flower-opening`    | One flower opening on its swaying stem, from its floral diagram: nine flowers whose petals are grown surfaces, coloured by their pigments and opened by differential growth                     | A    |
+| `rose`              | A rose opening from a tight bud, close up and slow: forty petals in a golden-angle spiral, nested shells in the bud and bowls as they open, so none passes through another                      | A    |
+| `wildflower-meadow` | The meadow in flower: daisies, buttercups, poppies and cornflowers in drifts, the nearest drawn whole on the stems the grass grew                                                               | C    |
+| `sunflowers`        | Rows of sunflowers whose heads follow the pointer as young sunflowers follow the sun, with a lag, and drift back east when it leaves                                                            | B    |
+| `night-bloom`       | A moonflower's twisted bud unfurling at dusk into a white limb, pale in the moonlight, seen as dark-adapted eyes see it                                                                         | A    |
+| `tulips`            | A Dutch bulb field in beds of one colour each running to the horizon, the near tulips whole cups swaying, closing in the evening                                                                | C    |
+| `cherry-branch`     | A cherry branch grown by space colonisation that buds, blossoms and sheds its petals on the breeze, over time or as the page scrolls                                                            | B    |
+| `dewy-petals`       | A macro close-up of a rose's petals beaded with dew, each drop a lens, under a shallow depth of field                                                                                           | C    |
 
 ## Layout
 
@@ -48,7 +55,11 @@ src/gpu/wind/               the ground wind (twin of src/wgsl/wind.wgsl): gust f
                             mower has laid
 src/gpu/flower/              the flower model: petals as grown surfaces (twin of src/wgsl/petal.wgsl)
                             and their levels of detail, floral diagrams of whorls, golden-angle
-                            spirals and fused tubes, opening by differential growth, stems in wind
+                            spirals and fused tubes, nested buds, opening by differential growth,
+                            stems in wind, heliotropism; looks.ts (each flower's pigments) and
+                            render.ts (the renderer the blooms share, also for a grass field's heads)
+src/gpu/plant/colonise.ts   branches grown by space colonisation, thickened by the pipe model
+src/gpu/post/night.ts       Moon Temple's night vision: the scene as dark-adapted eyes see it
 src/gpu/optics/petal.ts     petal colours from anthocyanins, carotenoids, betalains and flavonols
 src/gpu/grass/wildflowers.* the meadow's wildflowers: a drift map each, coloured by their pigments
 src/gpu/optics/leaf.ts      leaf colours from pigments, by a plate model after PROSPECT

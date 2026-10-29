@@ -1,4 +1,26 @@
 {
+  "cherry-branch": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 1.57
+      }
+    ],
+    "bundleKb": 49
+  },
+  "dewy-petals": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 2.71
+      }
+    ],
+    "bundleKb": 66.5
+  },
   "flower-opening": {
     "gpuMs": [
       {
@@ -12,8 +34,15 @@
         "deviceClass": "apple-silicon",
         "method": "browser-span",
         "ms": 0.8
+      },
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 0.22
       }
-    ]
+    ],
+    "bundleKb": 45.7
   },
   "fur-text": {
     "gpuMs": [
@@ -30,7 +59,7 @@
         "ms": 1
       }
     ],
-    "bundleKb": 46.2
+    "bundleKb": 48.3
   },
   "grass-edges": {
     "gpuMs": [
@@ -47,10 +76,10 @@
         "ms": 0.24
       }
     ],
-    "bundleKb": 32.8
+    "bundleKb": 34.4
   },
   "grass-footer": {
-    "bundleKb": 44.9,
+    "bundleKb": 48.6,
     "gpuMs": [
       {
         "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
@@ -87,7 +116,7 @@
         "ms": 1.53
       }
     ],
-    "bundleKb": 48.4
+    "bundleKb": 52.1
   },
   "hello": {
     "gpuMs": [
@@ -104,7 +133,7 @@
         "ms": 0.37
       }
     ],
-    "bundleKb": 25.4
+    "bundleKb": 26.8
   },
   "lawn": {
     "gpuMs": [
@@ -121,7 +150,7 @@
         "ms": 1.07
       }
     ],
-    "bundleKb": 47.7
+    "bundleKb": 51.4
   },
   "meadow": {
     "gpuMs": [
@@ -144,7 +173,7 @@
         "ms": 2.53
       }
     ],
-    "bundleKb": 52.5
+    "bundleKb": 72.5
   },
   "mowing": {
     "gpuMs": [
@@ -161,6 +190,61 @@
         "ms": 1.49
       }
     ],
-    "bundleKb": 47.9
+    "bundleKb": 51.6
+  },
+  "night-bloom": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 0.76
+      }
+    ],
+    "bundleKb": 45.8
+  },
+  "rose": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 0.68
+      }
+    ],
+    "bundleKb": 45.6
+  },
+  "sunflowers": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 2.25
+      }
+    ],
+    "bundleKb": 47.1
+  },
+  "tulips": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 4.06
+      }
+    ],
+    "bundleKb": 47.1
+  },
+  "wildflower-meadow": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 3.19
+      }
+    ],
+    "bundleKb": 72.6
   }
 }

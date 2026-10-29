@@ -61,7 +61,8 @@ describe('floral diagrams', () => {
       for (const o of organs) {
         expect(o.order).toBeGreaterThanOrEqual(0);
         expect(o.order).toBeLessThanOrEqual(1);
-        expect(o.open).toBeGreaterThanOrEqual(o.closed);
+        // Opening leans an organ out, except a nested bud's (story 12.2), held leaning by its shell.
+        if (!o.nested) expect(o.open).toBeGreaterThanOrEqual(o.closed);
       }
       const svg = diagramSvg(diagram);
       expect(svg.match(/<ellipse/g)).toHaveLength(organs.length);

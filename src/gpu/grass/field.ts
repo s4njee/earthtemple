@@ -4,6 +4,31 @@ import { createUniformBuffer, defineUniformStruct, uniformArray } from '../unifo
 import { FLOWER_MIX, HEAD_AREA, wildflowerLook } from './wildflowers.ts';
 
 const WILDFLOWER_LOOK = wildflowerLook();
+
+/**
+ * The lists: three of blades and one of flower heads drawn as dots, `capacity` each; then, with
+ * `nearHeads`, story 12.3's near flower heads in two bands by distance, a list for each wildflower in
+ * each, `NEAR_CAPACITY` each, after them (`nearList`). Each list has its draw arguments, the near
+ * ones only counting.
+ */
+const LISTS = 4;
+const NEAR_BANDS = 2;
+const NEAR_SPECIES = 4;
+const NEAR_LISTS = NEAR_BANDS * NEAR_SPECIES;
+export const NEAR_CAPACITY = 2048;
+
+/**
+ * Where near band `band`'s heads of wildflower `species` start in the blades, in blades, and where
+ * the list is counted in the arguments, in u32s.
+ */
+export function nearList(
+  capacity: number,
+  band: number,
+  species: number,
+): { first: number; count: number } {
+  const list = band * NEAR_SPECIES + species;
+  return { first: LISTS * capacity + list * NEAR_CAPACITY, count: (LISTS + list) * 4 + 1 };
+}
 import type { TrampleView } from '../wind/trample.ts';
 import { BLADE_BYTES, cellSize, LOD_LEVELS, type Species } from './blade.ts';
 import type { GroundCamera } from './camera.ts';
@@ -70,6 +95,9 @@ export const Field = defineUniformStruct('Field', {
   /** Story 11.6: each wildflower's claim on the meadow, and the ground their heads cover at a drift's heart. */
   flower_mix: 'vec4f',
   flower_cover: 'f32',
+  /** Story 12.3: heads nearer than these go to the two near lists, for a flower renderer to draw. */
+  flower_near: 'vec2f',
+  near_capacity: 'u32',
   lod0: 'f32',
   lod1: 'f32',
   lod_blend: 'f32',
@@ -161,6 +189,12 @@ export interface GrassSettings {
   flags?: number;
   /** Scales the species' share of flowering stems that carry a flower. Default 1. */
   flowers?: number;
+  /**
+   * Story 12.3: flower heads nearer than the first distance, m, go to the first near list
+   * (`nearList`), and nearer than the second to the second, instead of being drawn as dots, for
+   * real heads to be drawn there (src/gpu/flower/render.ts). Needs `nearHeads`. Default none.
+   */
+  flowerNear?: readonly [number, number];
   /** Draw shells beyond the blades' full detail (story 2.8). Default off. */
   shells?: boolean;
   /**
@@ -193,9 +227,12 @@ export interface Lighting {
 }
 
 export interface GrassField {
-  /** The blade lists, LOD after LOD, then flower heads, `capacity` each. */
+  /** The blade lists, LOD after LOD, then flower heads, `capacity` each, then the near heads. */
   readonly blades: GPUBuffer;
-  /** Four `drawIndirect` argument sets (vertex count, instance count, first vertex, first instance). */
+  /**
+   * Twelve `drawIndirect` argument sets (vertex count, instance count, first vertex, first
+   * instance), the last eight only counting the near heads.
+   */
   readonly args: GPUBuffer;
   readonly capacity: number;
   /** Cells the last `update` dispatches over. */
@@ -226,6 +263,8 @@ export interface GrassFieldOptions {
   distance?: boolean;
   /** Most cells one frame may dispatch over; the cell grows to fit (fewer, wider-spaced blades). */
   maxCells?: number;
+  /** Room for story 12.3's near flower heads (`flowerNear`). */
+  nearHeads?: boolean;
   label?: string;
 }
 
@@ -234,6 +273,7 @@ export const DISTANCE_FORMAT: GPUTextureFormat = 'r16float';
 export function createGrassField(device: GPUDevice, options: GrassFieldOptions): GrassField {
   const label = options.label ?? 'grass';
   const capacity = options.capacity;
+  const nearHeads = options.nearHeads ?? false;
   const maxCells = options.maxCells ?? 1 << 21;
   const samples = options.sampleCount ?? 4;
   const field = createUniformBuffer(device, Field, `${label} field`);
@@ -246,12 +286,12 @@ export function createGrassField(device: GPUDevice, options: GrassFieldOptions):
 
   const blades = device.createBuffer({
     label: `${label} blades`,
-    size: 4 * capacity * BLADE_BYTES,
+    size: (LISTS * capacity + (nearHeads ? NEAR_LISTS * NEAR_CAPACITY : 0)) * BLADE_BYTES,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
   });
   const args = device.createBuffer({
     label: `${label} draw args`,
-    size: 64,
+    size: (LISTS + NEAR_LISTS) * 16,
     usage:
       GPUBufferUsage.STORAGE |
       GPUBufferUsage.INDIRECT |
@@ -511,6 +551,8 @@ export function createGrassField(device: GPUDevice, options: GrassFieldOptions):
           s.species.flowers *
           (s.flowers ?? 1) *
           HEAD_AREA,
+        flower_near: nearHeads ? (s.flowerNear ?? [0, 0]) : [0, 0],
+        near_capacity: NEAR_CAPACITY,
         lod0: s.lod0,
         lod1: s.lod1,
         lod_blend: s.lodBlend ?? 0.3,

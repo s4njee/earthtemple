@@ -4,6 +4,7 @@ import type { RenderTarget } from '../targets.ts';
 import type { Gamut } from '../colour/wide-gamut.ts';
 import { createPostChain, type PostChain, type PostSettings } from './chain.ts';
 import { createColourStage, type ColourStage } from './colour-stage.ts';
+import { createNightVision, NIGHT_LEVELS, type NightLevel, type NightVision } from './night.ts';
 import { ALPHA_MODES, type AlphaMode } from './output.ts';
 
 /*
@@ -50,6 +51,20 @@ export const OVERLAY_PARAMS = {
   underlay: { type: 'number', default: 0.3, min: 0, max: 1, step: 0.01 },
 } as const satisfies ParamSchema;
 
+/**
+ * Moon Temple's night vision (its story 5.6, night.ts): the scene as dark-adapted eyes see it,
+ * before bloom, for an effect set at night (story 12.5). `moonlit` takes paper white as 0.1 cd/m^2,
+ * `starlit` as 0.003: colour drains, blue holds up and red falls away. Spread it to offer it.
+ */
+export const NIGHT_PARAMS = {
+  nightVision: {
+    type: 'select',
+    default: 'off',
+    options: Object.keys(NIGHT_LEVELS) as NightLevel[],
+    label: 'night vision',
+  },
+} as const satisfies ParamSchema;
+
 export interface TailValues {
   exposure: number;
   bloom: number;
@@ -64,6 +79,8 @@ export interface TailValues {
   alpha?: string;
   alphaGain?: number;
   underlay?: number;
+  /** Present when the effect spread `NIGHT_PARAMS`: a key of NIGHT_LEVELS; anything else is off. */
+  nightVision?: string;
 }
 
 export interface HdrTailOptions {
@@ -147,6 +164,7 @@ export function createHdrTail(device: GPUDevice, options: HdrTailOptions): HdrTa
         })
       : undefined;
 
+  let night: NightVision | undefined;
   return {
     get scene() {
       return stage ? stage.input : chain.scene;
@@ -158,6 +176,11 @@ export function createHdrTail(device: GPUDevice, options: HdrTailOptions): HdrTa
     },
     encode(encoder, target, time, values, profiler, overrides) {
       stage?.encode(encoder, chain.scene.view, time.time, values, profiler);
+      const whiteCd = NIGHT_LEVELS[values.nightVision as NightLevel] ?? 0;
+      if (whiteCd > 0) {
+        night ??= createNightVision(device);
+        night.encode(encoder, chain.scene, whiteCd, profiler);
+      }
       const settings = tailSettings(values, time, hdr);
       // Bloom overrides refine the bloom the values asked for. When the values turned it off
       // (intensity 0), an override brings it back only by naming an intensity of its own.
@@ -179,6 +202,7 @@ export function createHdrTail(device: GPUDevice, options: HdrTailOptions): HdrTa
     },
     destroy() {
       stage?.destroy();
+      night?.destroy();
       chain.destroy();
     },
   };

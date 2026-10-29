@@ -101,16 +101,21 @@ describe('petal levels of detail', () => {
   it('draws each petal with the coarsest grid within a pixel, coarser as it gets smaller', async () => {
     const { arrange, FLOWERS } = await import('../src/gpu/flower/diagram.ts');
     const { PETAL_LODS, gridError, petalLod } = await import('../src/gpu/flower/petal.ts');
-    const shapes = Object.values(FLOWERS)
-      .flatMap((d) => arrange(d))
-      .filter((o) => o.organ === 'petal' || o.organ === 'sepal')
-      .map((o) => ({ ...o.shape, curl: o.curl }));
-    const vertices = (px: number) =>
+    const shapesOf = (diagrams: readonly (typeof FLOWERS)[keyof typeof FLOWERS][]) =>
+      diagrams
+        .flatMap((d) => arrange(d))
+        .filter((o) => o.organ === 'petal' || o.organ === 'sepal')
+        .map((o) => ({ ...o.shape, curl: o.curl }));
+    // The rose has a budget of its own: its forty petals' rolled margins (story 12.2) are tight
+    // curves across, a level finer than a flat petal.
+    const { rose, ...others } = FLOWERS;
+    const all = shapesOf(Object.values(FLOWERS));
+    const vertices = (px: number, shapes = shapesOf(Object.values(others))) =>
       shapes.reduce((n, s) => {
         const lod = PETAL_LODS[petalLod(s, px)]!;
         return n + lod.nu * lod.nv;
       }, 0) / shapes.length;
-    for (const s of shapes) {
+    for (const s of all) {
       let last = 0;
       for (const px of [200, 100, 50, 25, 12, 6]) {
         const k = petalLod(s, px);
@@ -124,5 +129,6 @@ describe('petal levels of detail', () => {
     // A petal 100 px long needs about a 22 x 11 grid on average, and one 25 px long a third of it.
     expect(vertices(100)).toBeLessThan(22 * 11);
     expect(vertices(25)).toBeLessThan((22 * 11) / 3);
+    expect(vertices(100, shapesOf([rose]))).toBeLessThan(32 * 16);
   });
 });
