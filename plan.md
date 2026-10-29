@@ -233,8 +233,14 @@ Story format: `ID Title [tier] (size)`. Sizes: S ≈ a day or less, M ≈ a few 
 
   _`hello`: up to 4000 flat 2D blades, a pure function of index and time, in one instanced draw. 0.35 ms on Dawn, 0.5 to 0.9 ms in Chrome: Tier A. Rooted one to a slot, the `tall` preset's blades were a row of evenly spaced stripes, which the pattern check read over its limit; rooted across three slots, it reads `low`._
 
-- [ ] **1.3 Repository and CI** (S) — its own git repository (`s4njee/earthtemple`, created private and made public on the user's word, since private repositories cannot run Actions on this account). The CI workflow runs on software Vulkan (lint, format, typecheck, tests, build) and is green once.
-- [ ] **1.4 Deploy** (S) — Cloudflare Pages project `earthtemple` (classic, created with `--force`), and an `npm run deploy` that builds, checks the bundle and uploads `dist`.
+- [x] **1.3 Repository and CI** (S) — its own git repository (`s4njee/earthtemple`, created private and made public on the user's word, since private repositories cannot run Actions on this account). The CI workflow runs on software Vulkan (lint, format, typecheck, tests, build) and is green once.
+
+  _Public repository `s4njee/earthtemple`, created private and made public on the user's word. M0 and M1 went in as one commit (b586a27)._
+
+- [x] **1.4 Deploy** (S) — Cloudflare Pages project `earthtemple` (classic, created with `--force`), and an `npm run deploy` that builds, checks the bundle and uploads `dist`.
+
+  _Live at <https://earthtemple.pages.dev>, deployed from b586a27 (classic Pages project, created with `--force`)._
+
 - [ ] **1.5 Posters, catalogue and the holofx site** (S) — posters from held frames, `catalogue.json`, and Earth Temple in the holofx site's dropdown, lab and effect pages.
 
   _Posters (16 and 71 kB) and `catalogue.json` done. `grass-footer` is listed as a demo, not ready, because it needs compute. Still to do: the holofx site._
