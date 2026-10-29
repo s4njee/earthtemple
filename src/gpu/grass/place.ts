@@ -20,9 +20,9 @@ export interface PlacedBlade {
   tone: number;
 }
 
-/** The trample field as the CPU sees it: a copy of its buffer, and its window. */
+/** The trample field as the CPU sees it: a copy of its buffer (four numbers a cell), and its window. */
 export interface TrampleCopy {
-  bend: ArrayLike<number>;
+  cells: ArrayLike<number>;
   origin: readonly [number, number];
   cell: number;
   size: number;
@@ -33,6 +33,23 @@ const smoothstep = (lo: number, hi: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 const unorm3 = (h: [number, number, number]) => h.map(toUnorm) as [number, number, number];
+const CUT = 0.55;
+const LAY = 1.2;
+
+function arrival(px: number, pz: number, g: NonNullable<GrassSettings['growth']>, seed: number) {
+  const bx = Math.floor(px / g.cell);
+  const bz = Math.floor(pz / g.cell);
+  let best = 1e9;
+  for (let j = -1; j <= 1; j++) {
+    for (let i = -1; i <= 1; i++) {
+      const h = unorm3(pcg3d(bx + i, bz + j, (seed ^ 0x6b43a9) >>> 0));
+      const sx = (bx + i + h[0]) * g.cell;
+      const sz = (bz + j + h[1]) * g.cell;
+      best = Math.min(best, h[2] * g.spread + Math.hypot(px - sx, pz - sz) / g.speed);
+    }
+  }
+  return best + 0.6 * valueNoise(px * 2.5, pz * 2.5, (seed + 17) >>> 0);
+}
 
 function clumpOf(px: number, pz: number, size: number, seed: number) {
   const bx = Math.floor(px / size);
@@ -129,6 +146,19 @@ export function placeBlades(
         width *= 0.45;
       }
       const facing = rc[0] * 6.2831853 + (r2[2] - 0.5) * 1.6;
+      const pressed = trample
+        ? sampleTrample(trample.cells, trample.origin, trample.cell, trample.size, rx, rz)
+        : [0, 0, 0, 0];
+      height *= 1 - CUT * Math.hypot(pressed[2]!, pressed[3]!);
+      if (s.growth) {
+        const grown = smoothstep(
+          0,
+          0.6,
+          s.growth.progress - arrival(rx, rz, s.growth, seed) - 0.25 * r3[0],
+        );
+        if (grown < 0.03) continue;
+        height *= grown;
+      }
 
       const c = project(camera.viewProj, [rx, 0.5 * height, rz]);
       const radius = height * (0.6 + sp.lean + s.wind.lean + s.wind.gust);
@@ -171,11 +201,8 @@ export function placeBlades(
       const push =
         s.pointer[3] * above * near * Math.exp(-(across * across) / (s.pointer[2] * s.pointer[2]));
       const part = Math.sign(across) * push;
-      const [tx, tz] = trample
-        ? sampleTrample(trample.bend, trample.origin, trample.cell, trample.size, rx, rz)
-        : [0, 0];
-      const bx = ax * lean + gx + tx + camera.right[0] * part;
-      const bz = az * lean + gz + tz + camera.right[1] * part;
+      const bx = ax * lean + gx + pressed[0]! + LAY * pressed[2]! + camera.right[0] * part;
+      const bz = az * lean + gz + pressed[1]! + LAY * pressed[3]! + camera.right[1] * part;
       const curve = bladeShape(v0, [rx + bx * height, height, rz + bz * height], height);
 
       const variation = has(FLAGS.variation) ? r3[0] : 0.5;

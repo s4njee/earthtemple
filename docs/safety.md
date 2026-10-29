@@ -12,4 +12,6 @@ What this family has found so far:
 
 The full study is [docs/studies/grass-safety.md](studies/grass-safety.md).
 
+- **Mown stripes are not a grating at a lawn's scale.** `mowing`'s stripes, a row wide and lit only by which way the stubble lies, read pattern `none` even at `bold stripes` and the strong dose, so nothing is gated. A finer row width would need measuring again.
+- **A held frame shows what playing would.** The held-frame audit compares the first held frame with the brightest a run shows. Two effects held more than they play: `mowing` held a lawn less mown than it had played (its catch-up was spread over frames, now one brush a row), and `grass-edges` held grass fully grown where the scroll had grown it only part way (a held frame now keeps the scroll's growth, the visitor's own motion).
 - **Held frames are lulls.** A paused grass effect draws at the default intensity or less, and with no gust, so the frame a paused page shows is still grass, not a field caught mid-gust.

@@ -73,6 +73,10 @@ export const Field = defineUniformStruct('Field', {
   flags: 'u32',
   trample_cell: 'f32',
   trample_size: 'u32',
+  growth: 'f32',
+  growth_cell: 'f32',
+  growth_speed: 'f32',
+  growth_spread: 'f32',
   wind_lean: 'f32',
   wind_gust: 'f32',
   gust_speed: 'f32',
@@ -150,6 +154,12 @@ export interface GrassSettings {
   flowers?: number;
   /** Draw shells beyond the blades' full detail (story 2.8). Default off. */
   shells?: boolean;
+  /**
+   * Growth (story 3.7): blades grow in where a front spreading from seeded patches has passed.
+   * `progress` in the units of `spread`; patches `cell` m apart start up to `spread` apart and
+   * spread at `speed` m per unit. Leave out for grown grass.
+   */
+  growth?: { progress: number; cell: number; speed: number; spread: number };
 }
 
 export interface Lighting {
@@ -242,7 +252,7 @@ export function createGrassField(device: GPUDevice, options: GrassFieldOptions):
   // A field nothing has trampled reads this one cell.
   const untrampled = device.createBuffer({
     label: `${label} no trample`,
-    size: 8,
+    size: 16,
     usage: GPUBufferUsage.STORAGE,
   });
 
@@ -490,6 +500,10 @@ export function createGrassField(device: GPUDevice, options: GrassFieldOptions):
         flags: s.flags ?? ALL_PARTS,
         trample_cell: s.trample?.cell ?? 1,
         trample_size: s.trample?.size ?? 0,
+        growth: s.growth?.progress ?? -1,
+        growth_cell: s.growth?.cell ?? 1,
+        growth_speed: s.growth?.speed ?? 1,
+        growth_spread: s.growth?.spread ?? 0,
         wind_lean: s.wind.lean,
         wind_gust: s.wind.gust,
         gust_speed: s.wind.speed,

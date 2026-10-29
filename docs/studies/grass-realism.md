@@ -56,7 +56,7 @@ Costs are what the frame saves without the part, against the full recipe's 2.10 
 
 ![midday with shells for the far grass](realism/midday-shells.jpg)
 
-Shells drawn beyond the blades' full detail cost 0.19 ms more and change nothing a viewer can see at eye level: the slices are seen nearly edge-on, and the canopy ground already covers that distance. They are built for views from above. That judgement waits for the lawn (story 3.3), whose camera looks down.
+Shells drawn beyond the blades' full detail cost 0.19 ms more and change nothing a viewer can see at eye level: the slices are seen nearly edge-on, and the canopy ground already covers that distance. They are built for views from above. The lawn (story 3.3), whose camera looks down at 42°, settled it: shells add a little texture to the thin band of far lawn at the top of the view, and cost 0.7 ms there (1.79 ms against 1.07). The far lawn is too little of the picture to pay for them, so the canopy stays the default from above too.
 
 ## The cheapest recipe that still reads as real
 

@@ -41,7 +41,15 @@ export async function measureShimmer(
   return analyseFlashes({ cells, cellAreaPx: REGION * REGION * SCALE * SCALE, fps: 60 });
 }
 
-const GRASS = ['grass-footer', 'meadow'] as const;
+const GRASS = [
+  'grass-footer',
+  'meadow',
+  'lawn',
+  'mowing',
+  'grass-growth',
+  'grass-edges',
+  'fur-text',
+] as const;
 
 describe.skipIf(process.env.FLASH_SWEEP === '0')('grass shimmer', () => {
   for (const id of GRASS) {

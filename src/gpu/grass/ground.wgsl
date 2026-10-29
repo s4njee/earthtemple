@@ -1,6 +1,7 @@
 #include "field-params.wgsl"
 #include "look-params.wgsl"
 #include "grass-shade.wgsl"
+#include "growth.wgsl"
 
 // The ground under and beyond the blades (story 2.8): one quad on the ground, drawn before them
 // into the same multisampled target.
@@ -68,13 +69,27 @@ fn wind_now_ground() -> Wind {
 
 @fragment fn ground_fs(in: Varying) -> Fragment {
   let d = distance(in.world, F.eye);
-  // Under grass the soil sees little sun or sky.
-  let soil = shade_surface(Surface(L.soil, vec3f(0.0)), vec3f(0.0, 1.0, 0.0), vec3f(1.0, 0.0, 0.0), in.world, 0.0);
+  // Under grass the soil sees little sun or sky. Where a growing lawn has not come up yet, it is
+  // open ground, lit as if above the canopy, and its clods show.
+  let up = vec3f(0.0, 1.0, 0.0);
+  let along = vec3f(1.0, 0.0, 0.0);
+  var soil = shade_surface(Surface(L.soil, vec3f(0.0)), up, along, in.world, 0.0);
+  if (F.growth >= 0.0) {
+    let bare = 1.0 - grown_at(in.world.xz, 0.0);
+    // Two scales of noise, the finer turned against the coarser, so no lattice lines up.
+    let q = in.world.xz;
+    let r = vec2f(0.8 * q.x - 0.6 * q.y, 0.6 * q.x + 0.8 * q.y);
+    let grain = 0.6 * value_noise(q * 6.0, 31u) + 0.4 * value_noise(r * 17.0, 37u);
+    let clods = L.soil * mix(0.7, 1.15, grain);
+    let open = shade_surface(Surface(clods, vec3f(0.0)), up, along, vec3f(in.world.x, L.canopy_height, in.world.z), 0.0);
+    soil = mix(soil, open, bare);
+  }
   if (L.ground_mode < 0.5) {
     let a = 1.0 - smoothstep(0.35 * F.fade, 0.8 * F.fade, d);
     return Fragment(vec4f(soil * a, a), d);
   }
-  let far = smoothstep(0.55 * F.reach, 0.95 * F.reach, d);
+  // A growing lawn's canopy comes in with its blades.
+  let far = smoothstep(0.55 * F.reach, 0.95 * F.reach, d) * grown_at(in.world.xz, 0.12);
   var colour = soil;
   if (far > 0.0) { colour = mix(soil, canopy(in.world.xz), far); }
   return Fragment(vec4f(colour, 1.0), d);

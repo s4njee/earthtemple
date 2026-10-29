@@ -4,6 +4,7 @@ import { groundCamera, type GroundCamera } from '../src/gpu/grass/camera.ts';
 import { createGrassField, type GrassSettings } from '../src/gpu/grass/field.ts';
 import { placeBlades } from '../src/gpu/grass/place.ts';
 import { groundWind, type Wind } from '../src/gpu/wind/wind.ts';
+import { createTrample } from '../src/gpu/wind/trample.ts';
 import { getTestDevice } from './gpu.ts';
 
 // Stories 2.1 to 2.4: the blade, the field against its CPU twin, placement that is stable and
@@ -158,6 +159,60 @@ describe('grass field', () => {
     }
     expect(matched / leaves.length).toBeGreaterThan(0.999);
     expect(worst).toBeLessThan(1e-3);
+  });
+
+  it('matches its twin with a lawn half grown and mown in stripes', async () => {
+    const device = await getTestDevice();
+    const trample = createTrample(device, { size: 128, cell: 0.06, tau: 2 });
+    for (let k = 0; k < 60; k++) {
+      const row = Math.floor(k / 20);
+      const along = row % 2 === 0 ? 1 : -1;
+      const encoder = device.createCommandEncoder();
+      trample.step(encoder, 1 / 60, 0, 4, [
+        {
+          x: along * (-1.5 + 0.15 * (k % 20)),
+          z: 3 + 0.4 * row,
+          radius: 0.25,
+          strength: 1,
+          along: [along, 0],
+          mow: true,
+        },
+      ]);
+      device.queue.submit([encoder.finish()]);
+    }
+    const read = device.createBuffer({
+      size: trample.buffer.size,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+    const encoder = device.createCommandEncoder();
+    encoder.copyBufferToBuffer(trample.buffer, 0, read, 0, trample.buffer.size);
+    device.queue.submit([encoder.finish()]);
+    await read.mapAsync(GPUMapMode.READ);
+    const cells = new Float32Array(read.getMappedRange().slice(0));
+    const copy = { cells, origin: [...trample.origin] as [number, number], cell: 0.06, size: 128 };
+    const s = settings({
+      trample,
+      growth: { progress: 1.2, cell: 1.5, speed: 1.5, spread: 1 },
+    });
+    const gpu = await runGpu(camera(), s, 2.2);
+    const cpu = placeBlades(camera(), s, 2.2, SIZE, copy);
+    const full = placeBlades(camera(), settings(), 2.2, SIZE);
+    // Part grown: fewer blades than a grown field, but some.
+    expect(cpu.length).toBeGreaterThan(500);
+    expect(cpu.length).toBeLessThan(full.length * 0.9);
+    for (let lod = 0; lod < 4; lod++) {
+      const n = cpu.filter((b) => b.lod === lod).length;
+      expect(Math.abs(gpu.counts[lod]! - n)).toBeLessThanOrEqual(Math.max(3, n * 0.002));
+    }
+    const find = byRoot(cpu.filter((b) => b.lod < 3));
+    let worst = 0;
+    for (const b of gpu.blades.filter((g) => g.lod < 3)) {
+      const twin = find(b.v0);
+      if (twin) worst = Math.max(worst, Math.hypot(...b.v2.map((x, i) => x - twin.v2[i]!)));
+    }
+    expect(worst).toBeLessThan(2e-3);
+    read.destroy();
+    trample.destroy();
   });
 
   it('grows the same blade from the same ground when the view moves', async () => {

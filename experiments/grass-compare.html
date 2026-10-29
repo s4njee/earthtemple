@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grass four ways</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #14110e;
+        color: #f1ebe3;
+        font: 16px/1.5 system-ui, sans-serif;
+      }
+      main {
+        padding: 12vh 10vw;
+        max-width: 40rem;
+      }
+      h1 {
+        font-size: 3rem;
+        margin: 0 0 1rem;
+      }
+      .strip {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 24vh;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      canvas.strip {
+        width: 100%;
+      }
+      /* SVG blades, each swaying about its root with a CSS keyframe rotation. */
+      .svg path {
+        transform-box: fill-box;
+        transform-origin: 50% 100%;
+        animation: sway ease-in-out infinite alternate;
+      }
+      @keyframes sway {
+        from {
+          transform: rotate(-4deg);
+        }
+        to {
+          transform: rotate(5deg);
+        }
+      }
+      /* CSS only: three layers of gradient tufts, masked into blades, sheared to and fro. */
+      .css div {
+        position: absolute;
+        inset: 0;
+        transform-origin: 50% 100%;
+        animation: shear ease-in-out infinite alternate;
+        will-change: transform;
+        -webkit-mask: repeating-conic-gradient(from -8deg at 50% 100%, #000 0 3deg, transparent 3deg 6deg)
+          0 100% / var(--w) 100% repeat-x;
+        mask: repeating-conic-gradient(from -8deg at 50% 100%, #000 0 3deg, transparent 3deg 6deg) 0
+          100% / var(--w) 100% repeat-x;
+      }
+      @keyframes shear {
+        from {
+          transform: skewX(-3deg);
+        }
+        to {
+          transform: skewX(3deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Spring sale</h1>
+      <p>
+        The page above the grass: some text, so each method is drawn under something a site would
+        have. Story 3.8 compares four ways to draw a grass strip by blade count.
+      </p>
+    </main>
+    <script type="module" src="./grass-compare.ts"></script>
+  </body>
+</html>

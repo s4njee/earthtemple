@@ -48,5 +48,10 @@ export const STUDY_SWEEPS: Readonly<Record<string, readonly StudyConfig[]>> = {
     ...sweep('meadow', 'ablate', ['depth of field', 'antialias'], { time: 'golden hour' }),
     ...sweep('meadow', 'distance', ['shells']),
     ...sweep('meadow', 'density', [0.3, 0.5]),
+    // Story 2.8 left shells or canopy beyond the blades to be judged from above.
+    ...sweep('lawn', 'far', ['shells']),
+    ...sweep('lawn', 'density', [0.4, 1]),
+    ...sweep('fur-text', 'length', [0.5, 2]),
+    ...sweep('grass-edges', 'density', [2]),
   ],
 };

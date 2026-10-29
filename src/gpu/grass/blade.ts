@@ -96,18 +96,19 @@ const p = (chlorophyll: number, carotenoids: number, brown = 0, layers = 1.5): P
 
 export const SPECIES = {
   lawn: {
-    height: [0.06, 0.11],
-    width: 0.004,
+    // Mown turf: short, dense and even, its clumps barely leaning.
+    height: [0.04, 0.075],
+    width: 0.0035,
     taper: 3,
-    lean: 0.12,
+    lean: 0.06,
     twist: 0.4,
     freq: 3.2,
-    density: 6000,
+    density: 9000,
     dry: 0.03,
     stems: 0,
     stemHeight: 1,
     flowers: 0,
-    lai: 3,
+    lai: 2.2,
     pigments: {
       root: [p(55, 12), p(42, 10)],
       tip: [p(42, 10), p(28, 8)],

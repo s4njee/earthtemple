@@ -3,6 +3,7 @@
 #include "wind.wgsl"
 #include "field-params.wgsl"
 #include "grass-flags.wgsl"
+#include "growth.wgsl"
 
 // Stories 2.2 to 2.5: the grass field, grown afresh each frame in compute. Twin of
 // src/gpu/grass/place.ts.
@@ -21,7 +22,10 @@
 // 4. Kind. Most blades are leaves; some are dry; some are flowering stems, taller and thinner, with
 //    a seed head or, in a meadow, a flower.
 // 5. Culling. Outside the view (a sphere about the blade), or edge-on and too thin to see.
-// 6. Wind, the trample field and the pointer bend the tip, and blade_shape keeps the length.
+// 6. Wind, the trample field and the pointer bend the tip, and blade_shape keeps the length. A
+//    mown cell's grass is cut shorter and leans the mower's way.
+// 6b. Growth (story 3.7). When on, a blade grows in once the arrival time of a front spreading from
+//    seeded patches has passed: patches start at their own moments and spread at a set speed.
 // 7. The survivor is appended to the list for its distance band, the bands' edges dithered so a
 //    change of LOD never runs along a line, and the band's instance count goes up by one. A flower
 //    also goes to the fourth list, for its head.
@@ -42,7 +46,12 @@ struct Blade {
 @group(0) @binding(0) var<uniform> F: Field;
 @group(0) @binding(1) var<storage, read_write> blades: array<Blade>;
 @group(0) @binding(2) var<storage, read_write> args: array<atomic<u32>, 16>;
-@group(0) @binding(3) var<storage, read> trample: array<vec2f>;
+@group(0) @binding(3) var<storage, read> trample: array<vec4f>;
+
+/** How much of a blade a mower takes. */
+const CUT: f32 = 0.55;
+/** How far mown stubble leans its mower's way, in heights. */
+const LAY: f32 = 1.2;
 
 struct Clump {
   centre: vec2f,
@@ -74,17 +83,17 @@ fn wind_now() -> Wind {
   return Wind(F.wind_dir, F.wind_lean, gust, F.gust_speed, F.gust_scale, F.flutter, F.time);
 }
 
-fn trample_cell(c: vec2i) -> vec2f {
+fn trample_cell(c: vec2i) -> vec4f {
   let n = i32(F.trample_size);
   let rel = c - F.trample_origin;
-  if (any(rel < vec2i(0)) || any(rel >= vec2i(n))) { return vec2f(0.0); }
+  if (any(rel < vec2i(0)) || any(rel >= vec2i(n))) { return vec4f(0.0); }
   let s = (c % n + n) % n;
   return trample[u32(s.y * n + s.x)];
 }
 
-// Bilinear over the trample field's cells, zero outside its window.
-fn trampled(p: vec2f) -> vec2f {
-  if (F.trample_size == 0u) { return vec2f(0.0); }
+// Bilinear over the trample field's cells (bend, lay), zero outside its window.
+fn trampled(p: vec2f) -> vec4f {
+  if (F.trample_size == 0u) { return vec4f(0.0); }
   let u = p / F.trample_cell - 0.5;
   let c = vec2i(floor(u));
   let f = u - floor(u);
@@ -136,6 +145,13 @@ fn append(lod: u32, blade: Blade) {
     width *= 0.45;
   }
   let facing = rc.x * 6.2831853 + (r2.z - 0.5) * 1.6;
+  let pressed = trampled(root);
+  height *= 1.0 - CUT * length(pressed.zw);
+  if (F.growth >= 0.0) {
+    let grown = grown_at(root, 0.25 * r3.x);
+    if (grown < 0.03) { return; }
+    height *= grown;
+  }
 
   // In view: a sphere about the blade, against the clip planes.
   let centre = F.view_proj * vec4f(v0 + vec3f(0.0, 0.5 * height, 0.0), 1.0);
@@ -173,7 +189,7 @@ fn append(lod: u32, blade: Blade) {
   let near = 1.0 - smoothstep(0.7 * F.lod0, 1.3 * F.lod0, d);
   let push = F.pointer.w * above * near * exp(-(across * across) / (F.pointer.z * F.pointer.z));
   let part = F.right * sign(across) * push;
-  let bend = lean + gust + trampled(root) + part;
+  let bend = lean + gust + pressed.xy + LAY * pressed.zw + part;
   let tip = v0 + vec3f(bend.x * height, height, bend.y * height);
   let curve = blade_shape(v0, tip, height);
 

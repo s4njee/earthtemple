@@ -23,6 +23,8 @@ The rest of the family follows the same rule as the other temples: start from th
 - **Drying mud.** It cracks at right angles, and relaxes towards hexagons over many wet and dry cycles.
 - **Mountains.** Their shapes come from water carrying sediment downhill.
 
+Flowers get the second half of the plan (Epics 11 to 18), on the same rule. A petal ruffles because its edge grows faster than its middle. It opens because its inner face grows faster than its outer one. It looks velvety because its surface cells are cones. Floral design follows it, as people made it: Morris's repeats, Mucha's borders, block prints, crests, stained glass, origami and embroidery, each read from how it was made.
+
 ## Goals
 
 - **Make grass that reads as real**, judged against photographs:
@@ -41,6 +43,8 @@ The rest of the family follows the same rule as the other temples: start from th
   - a lawn the cursor mows as a progress widget, and fur text;
   - roots growing down a sustainability page as it scrolls, and a section that scrolls down through rock strata;
   - a zen-garden widget, and an hourglass loader.
+  - flowers opening as a loader or as the page scrolls, a bouquet picker, floral text, and a wreath;
+  - floral repeats, borders, plates, prints and crests, made the way their traditions made them.
 - **Say plainly when SVG or CSS does the job.** A strip of SVG blades swaying with CSS is a footer, and the baseline to beat (3.8).
 - **Keep motion safe:**
   - a whole field swaying is whole-field motion, and wind waves crossing a lawn are travelling bands;
@@ -130,6 +134,10 @@ These findings shape this plan, so they need not be rediscovered.
 - **A strip of grass must reach the horizon.** Grass lower than the eye rises towards it with distance: cut at the nearest tallest blade, the far field was missing.
 - **Focus where a photographer would.** Most of an eye-level view is nearer than the middle distance; a far focus blurred nearly all of it.
 - **Beside photographs, the render is one species in tame light.** Real meadows mix grasses and forbs, each with its own colour and seed head; dry fields are mostly feathery panicles; a low sun floods the frame with glare and haze. Those, not the blades, are what still give the render away.
+- **Several trample steps in one command buffer see only the last one's brushes.** They share one uniform buffer, so all a frame's brushes go into one step, and a mower's brush is a whole pass along its row.
+- **Mown stripes need nothing painted, but laid grass lies further over than wind bends it.** At the wind's lean the stripes barely showed; at 1.2 of the blade's height they read as a striped lawn, and swap as the view turns.
+- **Fur by shells is a lookup problem.** Re-deriving each strand at every layer cost Chrome 7 ms; a strand map made once per heading took it to 2.5.
+- **SVG grass stops at a few hundred blades, Canvas 2D at a few thousand.** Past that, or wherever grass needs light and depth, WebGPU (story 3.8).
 - **The meadow is Tier C at full density, Tier B at half.** 6.2 ms in Chrome at midday, 7.7 at golden hour, 4.8 at half density; on Dawn 2.1 and 3.4 ms. Depth of field is 1.4 ms of golden hour's cost, and is skipped where nothing blurs by 2 px.
 
 ## Overlaps and who owns what
@@ -216,8 +224,16 @@ The effect contract is Snow Temple's, unchanged, `dose` included, so effects and
 | **M5** The ground         | Epics 6 and 7                 | Sand, cracks, erosion and strata                                                  |
 | **M6** On the page        | Epic 8, stories 9.1–9.5, 10.2 | Web-native usefulness, on more than one device                                    |
 | **M7** Release            | Rest of Epics 9 and 10        | Published findings, shared pieces moved into the core                             |
+| **M8** The flower model   | Epic 11                       | Petals grown, not painted: geometry, floral diagrams, optics, opening, wind       |
+| **M9** Blooms             | Epic 12                       | Single flowers opening, and the meadow with wildflowers in it                     |
+| **M10** Floral design     | Epic 13                       | Repeats, borders, plates, prints, crests and glass from how they were made        |
+| **M11** Made by hand      | Epic 14                       | Folded, cut, pressed and stitched flowers                                         |
+| **M12** Flowers on page   | Epic 15                       | Loaders, cursors, text, wreaths, petal bursts, bouquets, dividers                 |
+| **M13** Flower science    | Epic 16                       | Bee vision, pollinators, samaras, a flower clock, and flowers' safety cases       |
+| **M14** Floral pages      | Epic 17                       | A florist, a wedding, a perfume launch, a garden's scroll story, a greeting       |
+| **M15** Flowers released  | Epic 18                       | Flower realism, design and cost studies, SVG against WebGPU, into the core        |
 
-Grass comes first and gets the most care. M4 and M5 depend only on Epic 1, so either can run alongside M1 to M3.
+Grass comes first and gets the most care. M4 and M5 depend only on Epic 1, so either can run alongside M1 to M3. M8 depends on Epic 2 (the blade engine and the wind) and the leaf optics; Epic 4's flowers (4.4, 4.6) wait for it. M10 and M11 need only the fold library and the stroke renderer, so they can run alongside M8 and M9.
 
 Story format: `ID Title [tier] (size)`. Sizes: S ≈ a day or less, M ≈ a few days, L ≈ a week or more.
 
@@ -323,7 +339,7 @@ The engine behind every grass effect, and the part that has to be right. Ghost o
 
 - [x] **2.8 Distance and the horizon** [—] (M) — beyond the blades, grass continues as shells (Lengyel's shell texturing), then as a textured ground. That ground's colour and sheen are fitted to the near field's statistics, so the three meet without a seam. Blade budgets per tier are set here.
 
-  _Beyond the blades' reach (26 to 34 m), the ground is the canopy seen from afar: the blade shading averaged over pseudo-blades leaning with the wind (`ground.wgsl`), so it meets the blades by construction and its sheen moves with the gusts. Blades thin as (fade / d)^2 and widen to keep coverage. Shells (`shells.wgsl`, Lengyel's) are built and cost 0.19 ms more, but add nothing visible at eye level, where the slices are seen edge-on; whether they earn their place seen from above is the lawn's (3.3) to show. A hazed hedgerow along the horizon gives the field an edge. Blade budgets: about 35,000 for the footer, 75,000 for the full meadow, about half that for Tier B. The cell grid is bounded by the view's width at the blades' reach; most of its 1.4 million cells are rejected past the fade, and a coarser grid there is the next saving._
+  _Beyond the blades' reach (26 to 34 m), the ground is the canopy seen from afar: the blade shading averaged over pseudo-blades leaning with the wind (`ground.wgsl`), so it meets the blades by construction and its sheen moves with the gusts. Blades thin as (fade / d)^2 and widen to keep coverage. Shells (`shells.wgsl`, Lengyel's) are built and cost 0.19 ms more, but add nothing visible at eye level, where the slices are seen edge-on; seen from above (the lawn, 3.3) they add a little texture to the thin far band at the top of the view for 0.7 ms more, which is not worth it, so the canopy stays the default there too. A hazed hedgerow along the horizon gives the field an edge. Blade budgets: about 35,000 for the footer, 75,000 for the full meadow, about half that for Tier B. The cell grid is bounded by the view's width at the blades' reach; most of its 1.4 million cells are rejected past the fade, and a coarser grid there is the next saving._
 
 - [x] **2.9 Realism study** [—] (M) — `docs/studies/grass-realism.md`, the family's central study:
   - **Photographs and matches.** Reference photographs (CC0 or CC BY, credited) of a lawn, a meadow at midday, a backlit meadow at golden hour, and dry grass. The engine is set to match each, and the two are shown side by side.
@@ -371,12 +387,29 @@ The engine behind every grass effect, and the part that has to be right. Ghost o
 
   _`meadow`: the engine to the horizon under a sky with cumulus whose shadows cross the field, a hazed hedgerow, wildflowers in drifts, seed heads, pollen, depth of field, and a path the pointer brushes that springs back. Midday, golden hour from just above the grass, dusk, a sparse Tier B version, and a gated walk through it. Each part can be switched off (`without`), and the far grass drawn as shells. 2.1 ms on Dawn at midday, 3.4 at golden hour; in Chrome 6.2 ms at midday, 7.7 at golden hour: **Tier C**, with the sparse version (half density, 4.8 ms) in Tier B. Flash `low`, pattern `none`, motion inside the caps but walking. The view from among the blades the plan imagined is a grating and over the motion caps; golden hour is framed from just above them. The plan's "few wildflowers (4.4)" are simple flower heads here, not 4.4's phyllotaxis._
 
-- [ ] **3.3 `lawn`** [B] (M) — a lawn section seen from above at an angle. The pointer brushes and treads it, and the blades bend and recover over a few seconds (2.5). It is a cursor trail with a memory.
-- [ ] **3.4 `mowing`** [B] (M) — the pointer mows. Cut blades are shorter and laid down in the mower's direction. Stripes appear because blades leaning away from the viewer show their sheen and blades leaning towards them show their darker sides, so the stripes swap as the view turns. That is the real physics of lawn stripes. Stripes are a grating, so their contrast is held under the pattern step, and full contrast is gated. A playful progress bar: mow the lawn.
-- [ ] **3.5 `grass-edges`** [B] (M) — grass growing along the top edges of headings, cards and buttons. Snow Temple's element-edge rows hold blade length where they held snow depth. It grows in over time or scroll, sways, and parts around the pointer. A spring hero.
-- [ ] **3.6 `fur-text`** [B] (M) — fur or grass growing from a heading's glyphs (the text field), by shells (Lengyel) with Kajiya–Kay strand shading. A direction field that the pointer combs and that relaxes back. Temple of Time named this family as fur's home.
-- [ ] **3.7 `grass-growth`** [B] (S) — a lawn growing in from bare soil as the page scrolls, with blade height following an arrival-time reveal spread from seeded patches. An onboarding or "growth" metaphor.
-- [ ] **3.8 SVG and CSS against WebGPU** [—] (S) — grass four ways on the same page:
+- [x] **3.3 `lawn`** [B] (M) — a lawn section seen from above at an angle. The pointer brushes and treads it, and the blades bend and recover over a few seconds (2.5). It is a cursor trail with a memory.
+
+  _`lawn`: the engine under a pitched camera (`pitchedCamera`), an eye 1.7 m up looking 42° down, with a lawn species short, fine and dense (4 to 7.5 cm, 9000 blades a square metre) over thatch. Moving, the pointer brushes the trample field along its path; pressed, it treads a print; left alone, a slow trail winds across. All of a frame's brushes go into one trample step, up to 64: two steps in a command buffer share one uniform buffer. 1.07 ms on Dawn, 3.87 ms in Chrome: **Tier B**. Flash and pattern `none`; the shimmer test passes. Seen from above, shells beyond the blades add a little texture to the thin far band for 0.7 ms more, so canopy stays the default (2.8)._
+
+- [x] **3.4 `mowing`** [B] (M) — the pointer mows. Cut blades are shorter and laid down in the mower's direction. Stripes appear because blades leaning away from the viewer show their sheen and blades leaning towards them show their darker sides, so the stripes swap as the view turns. That is the real physics of lawn stripes. Stripes are a grating, so their contrast is held under the pattern step, and full contrast is gated. A playful progress bar: mow the lawn.
+
+  _`mowing`: a mower brush cuts (to 45% of the height) and lays the grass its way, in a second vector of the trample field that does not spring back, only fades with `regrow`. The stripes come out of the blade lighting unaided; laid as far as the wind bends grass, they barely showed, so laid grass lies over at 1.2 of its height. A mower's brush is a capsule along its pass, so a row is one brush and a held frame or a jump is mown at once. A clock mows the lawn in 40 s, or `progress` holds it as a progress bar, and dragging mows. 1.49 ms on Dawn, 4.14 ms in Chrome: **Tier B**. The stripes, a row wide and of low contrast, read pattern `none` even at `bold stripes`, so nothing is gated._
+
+- [x] **3.5 `grass-edges`** [B] (M) — grass growing along the top edges of headings, cards and buttons. Snow Temple's element-edge rows hold blade length where they held snow depth. It grows in over time or scroll, sways, and parts around the pointer. A spring hero.
+
+  _`grass-edges`: no rows were needed. Grass does not slide or pile, so a blade's length is a pure function of the growth, and one instanced draw of 2D blades covers up to 24 edges with nothing kept between frames. Roots jitter across three slots, since one to a slot is a grating. The canvas must lie over the copy (the hero layout): in a card slot it sees only its own bottom edge. 0.24 ms on Dawn, 1.99 ms in Chrome: **Tier A**. A held frame keeps the scroll's growth when the scroll drives it, as the visitor's own motion._
+
+- [x] **3.6 `fur-text`** [B] (M) — fur or grass growing from a heading's glyphs (the text field), by shells (Lengyel) with Kajiya–Kay strand shading. A direction field that the pointer combs and that relaxes back. Temple of Time named this family as fur's home.
+
+  _`fur-text`: shells in one fullscreen pass, 28 layers from the tips down, over the text field's distance. A strand bends along the comb as `lean × t²`, and between layers it is a capsule, so a laid strand is a streak, not dots. The comb is a 96-column CPU grid the pointer strokes and that relaxes back over 4 s, with a figure of eight when idle. Kajiya–Kay lighting with a tinted second highlight, tufts of tone, and coats of fur, grass and moss. A strand map (a texel per cell: present, height, root offset, tone) made once per heading took Chrome from about 7 ms to 2.5; Dawn reads 1.00 ms: **Tier B**. Flash and pattern `none`._
+
+- [x] **3.7 `grass-growth`** [B] (S) — a lawn growing in from bare soil as the page scrolls, with blade height following an arrival-time reveal spread from seeded patches. An onboarding or "growth" metaphor.
+
+  _`grass-growth`: placement grows each blade once a front from seeded patches has passed it (`growth.wgsl`, shared with the ground so nothing far is green before it has grown). Patches 1.6 m apart start up to 3 units of progress late and spread at 0.4 m a unit, with noise for ragged fronts. Bare ground is lit as open soil with clods. Scroll, or a clock that grows, holds and shrinks. 1.53 ms on Dawn, 5.21 ms in Chrome: **Tier B**._
+
+- [x] **3.8 SVG and CSS against WebGPU** [—] (S) — grass four ways on the same page:
+
+  _[docs/studies/grass-compare.md](docs/studies/grass-compare.md), by `node experiments/grass-compare.mjs`. SVG blades rotating with CSS cost about 0.3 ms of main thread per blade a second, since an SVG child's transform is painted on the main thread: fine to about 400 blades, 18 fps by 6400. Canvas 2D holds 60 fps to 6400 blades, at 134 ms/s of main thread and 350 in the GPU process, and drops to 48 fps at 25,600. The CSS-only strip is cheapest but moves as one silhouette. `grass-footer` draws 11,000 to 107,000 blades at a flat 30 ms/s of main thread. The crossover is in the low thousands: SVG below a few hundred blades, Canvas 2D to a few thousand, WebGPU past that or wherever the grass needs light, depth, wind or trampling._
   - SVG blade paths swaying with CSS transforms;
   - a CSS-only gradient strip;
   - a Canvas 2D strip;
@@ -463,6 +496,111 @@ The engine behind every grass effect, and the part that has to be right. Ghost o
 - [ ] **10.3 Grass crossover** (S) — 3.8's answer on more devices: at what blade count SVG, Canvas 2D and WebGPU each stop being the right choice.
 - [ ] **10.4 Decision guide** (S) — which effect for which job, how much grass a page can afford, and the cases where the answer is "don't".
 
+## Epic 11 — The flower model
+
+Flowers get the care grass got: a model first, then effects. Epic 4's flowers (4.4, 4.6) use it once it exists.
+
+- [ ] **11.1 Petal geometry** [—] (M) — `src/gpu/flower/petal.{ts,wgsl}`. A petal is a surface grown from its base, not a textured card:
+  - an outline from a few shape parameters (length, width, the widest point, a notched or pointed tip, a claw at the base), after Ijiri et al.'s petal editor;
+  - a cupping across it and a curl along it;
+  - ruffles at the edge, from the edge growing more than the middle. Liang and Mahadevan showed that a lily's edge wrinkles because its margin grows faster, so the ruffle's wavelength follows the growth excess and is not painted on;
+  - drawn as a tessellated patch from vertex pulling, LODs by size on screen, as the blades are.
+
+  Tested: a flat petal with no excess growth has no ruffle, and more excess gives more, shorter waves.
+
+  _Started: `src/gpu/flower/petal.ts` and its twin `src/wgsl/petal.wgsl`, with outline, claw, notch, cup, curl and ruffles. The ruffle's amplitude follows from the excess (a sine of amplitude A and wavelength λ lengthens a line by (πA/λ)², so A = λ√excess/π), and its wavelength shortens as excess^¼, after Sharon et al.'s leaf edges. Tested (`tests/petal.test.ts`): no excess, no ruffle; more excess, more and shorter waves; the ruffle takes up the excess length to first order; the outline is widest where it says; a curl keeps the length. Still to do: LODs by size on screen._
+
+- [ ] **11.2 Floral diagrams** [—] (M) — `src/gpu/flower/diagram.ts`. A flower as botanists describe it: whorls of sepals, petals, stamens and carpels, each with its count (merosity: lilies in threes, roses in fives), its offset from the whorl below, and fused or free. Petals in a spiral (a rose's) are placed by Vogel's golden-angle model, which moves here from 4.4. The same description builds a flower in 3D and draws its floral diagram in 2D, so a flower's structure can be checked against a botanical source. The fold library (from The Hero's Journey) supplies the dihedral symmetry of a regular flower.
+
+  _Started: `src/gpu/flower/diagram.ts`, with whorls (count and turn from the whorl outside), golden-angle spirals (radius, height, size and curl running inwards), and diagrams for a lily, buttercup, cherry, poppy, rose and camellia. `arrange` gives each organ its place, bud and open angles and opening order, ring by ring from the outside in; `diagramSvg` draws the diagram from above. Tested (`tests/diagram.test.ts`): a lily's tepals alternate at 60°, a rose's petals are 137.5° apart moving inwards, every flower opens outside in. Still to do: fused organs, and the fold library for regular flowers._
+
+- [ ] **11.3 Petal optics** [—] (M) — `src/gpu/optics/petal.ts`, beside the leaf model. Petal colour from its pigments: anthocyanins (red to blue, shifting with pH), carotenoids (yellow and orange), betalains (beetroot pinks) and chlorophyll at the base. Light through the petal from the leaf model's plate. The look of the surface:
+  - conical epidermal cells, which make a petal velvety by scattering light back towards it, and which petunias without them lack (Noda et al.);
+  - the gloss of a buttercup, from a thin cell layer over an air gap, as Vignolini et al. measured;
+  - structural colour, the iridescence of _Hibiscus trionum_'s striations (Whitney et al.).
+
+  Petals also carry ultraviolet patterns humans cannot see. These are kept as a channel for 16.1.
+
+- [ ] **11.4 Opening and closing** [—] (M) — a flower opens because its petals' inner faces grow faster than their outer ones, or swell with water, and so bend outwards (van Doorn and van Meeteren). Opening is modelled as a growth difference across each petal, over time or scroll, from bud to full bloom. Some flowers close at night. Tested: the bud is closed and the open flower matches its floral diagram, and opening is monotonic in its progress.
+- [ ] **11.5 Stems and heads in the wind** [—] (S) — a stem is a slender cantilever carrying a head's weight. It sways at its natural frequency, set by its length, stiffness and the head's mass, in the ground wind field (2.4). Heavy heads nod and thin stems whip. Sousa's hierarchy adds petal flutter on top.
+- [ ] **11.6 Flower field placement** [—] (M) — forbs among the grass: flowers placed by the blade engine's compute, in drifts, as wildflowers grow, not scattered. Species are mixed by a few soft maps. Far flowers become dots of colour, then a tint on the canopy, so a meadow full of flowers costs what the grass does. This is the meadow's missing realism (2.9): real meadows mix grasses and forbs.
+
+## Epic 12 — Blooms
+
+- [ ] **12.1 `flower-opening`** [A] (S) — a single flower opening, over time or as the page scrolls, with no compute: a lily, a poppy or a camellia from 11.2's diagrams. A hero's centrepiece or a section divider.
+
+  _Started, as the flower model's viewer: `flower-opening` draws any diagram (lily, buttercup, cherry, poppy, rose, camellia) as instanced petal grids pulled in the vertex shader, with 4x multisampling and depth, opening ring by ring over time or scroll. Its first run through the checks found three things: a turning flower is whole-field rotation (spin capped at 0.012 turns a second); a lily filling the view is a six-armed rosette over the pattern limit (it fills two thirds of the shorter side); and an opening rose is a zoom to optical flow, 0.22 doublings a second, so the rose opens at an eighth of the pace (under 0.083 across its cycle). Still to do: costs, posters and the realism pass with 11.3's optics. The rose's middle petals still pass through each other, which 12.2 takes on._
+
+- [ ] **12.2 `rose`** [B] (M) — a rose opening from a tight bud, its petals in a golden-angle spiral, cupped and curling back at their edges as they open (11.1, 11.4). The hardest single flower; it is the flower model's test.
+- [ ] **12.3 `wildflower-meadow`** [C] (L) — the meadow (3.2) with forbs: poppies, cornflowers, oxeye daisies and buttercups in drifts (11.6), swaying on their stems. Judged against photographs as the meadow was, with the mixed field it lacked.
+- [ ] **12.4 `sunflowers`** [B] (M) — a row of sunflowers whose heads follow the pointer as young sunflowers follow the sun. Atamian et al. showed that the stem's east side grows faster by day and the west by night, so heads turn with a lag and return overnight. The heads are 4.4's florets. The pattern rule measures the spirals.
+- [ ] **12.5 `night-bloom`** [B] (S) — a moonflower or evening primrose opening at dusk, fast enough to watch, with its pale petals glowing in moonlight (Moon Temple's night vision tail). A dark hero.
+- [ ] **12.6 `tulips`** [B] (M) — a field of tulips in coloured stripes, as the Dutch bulb fields are grown. Stripes are a grating, so the bands' contrast and width are measured. The cup-shaped head and its close-at-night movement (11.4) come from the model.
+- [ ] **12.7 `cherry-branch`** [B] (M) — a branch grown by space colonisation (5.1) that buds and blossoms as the page scrolls, then sheds petals (4.3) on the wind.
+- [ ] **12.8 `dewy-petals`** [B] (M) — a macro close-up of petals with dew drops, using Water Temple's droplet optics, with depth of field. The look of a perfume or skincare brand.
+
+## Epic 13 — Floral design
+
+Flowers as people have drawn and printed them. The look comes from how each was made.
+
+- [ ] **13.1 Floral rosettes** [A] (S) — flower-like rosettes from the fold library's dihedral groups: a chrysanthemum's sixteen petals, a rose window, a Tudor rose. With The Hero's Journey's rosette finding: a rosette with six or more arms is a regular pattern, so its contrast and size are measured.
+- [ ] **13.2 `floral-repeat`** [B] (M) — a wallpaper or textile repeat in the manner of William Morris: flowers, leaves and stems grown by space colonisation in a tile, then repeated by a half-drop or a wallpaper group. The repeat is why a wallpaper reads as one, and it is a pattern, so it is measured. Morris's designs are old enough to be public domain, but nothing is copied: the repeat is grown.
+- [ ] **13.3 `art-nouveau-frame`** [B] (M) — whiplash stems and lilies growing around a card or a section in the manner of Mucha's borders, with a reveal by arrival time. The stroke renderer draws the lines, in even, tapered widths.
+- [ ] **13.4 `botanical-plate`** [A] (M) — a botanical illustration drawn as an engraving: outline, then hatching that follows the form, then hand colouring, revealed in that order as an engraver and colourist worked. Built from 11.2's flower, so the plate is of a real flower's structure.
+- [ ] **13.5 `block-print`** [A] (S) — an Indian block-printed floral (Sanganer or Bagru): one wooden block per colour, each printed slightly out of register, with ink pooling at the block's edges and the cloth's weave showing through. Temple of Time's print pipeline provides the misregistration and the paper; the block is grown here.
+- [ ] **13.6 `kamon`** [A] (S) — Japanese family crests of flowers (the sixteen-petal chrysanthemum, the paulownia, the plum), drawn from circles and arcs by compass and ruler, as crest makers drew them. They work as icons and loaders.
+- [ ] **13.7 `stained-glass-flowers`** [B] (M) — a Tiffany-style floral window over a section: coloured glass with seeds and streaks, lead cames between the pieces, and light through it that moves with the sun. The pieces are cut from a Voronoi partition that follows the flower's outlines.
+
+## Epic 14 — Made by hand
+
+Flowers that are folded, cut, pressed or stitched, where the craft is the mechanism.
+
+- [ ] **14.1 `origami-flowers`** [B] (M) — paper flowers folding themselves: a lily and a Kawasaki rose. Fold sequences run on the fold library, with paper that bends but does not stretch, so each fold is an isometry. Tested: paper area is conserved through the sequence.
+- [ ] **14.2 `paper-cut`** [A] (M) — layered paper-cut flowers, as in a shadow box: layers at depths, each casting a soft shadow on the one behind, which shifts with the pointer for parallax inside the vection caps.
+- [ ] **14.3 `pressed-flowers`** [A] (S) — a herbarium sheet: flattened flowers whose colours have faded as pigments do (anthocyanins brown and carotenoids last), with translucent petals over paper. A gentle, still card background.
+- [ ] **14.4 `embroidery`** [B] (M) — flowers stitched in satin and stem stitch along their outlines, stitch by stitch, as the page scrolls. Each thread is lit as a strand with Kajiya and Kay's model (from 3.6), so the satin catches the light as it turns. The stitch directions follow the petal's shape, as an embroiderer's do.
+- [ ] **14.5 `ikebana`** [B] (S) — an arrangement of a few stems in a vase, placed by the three-line rule of Ikenobo (heaven, earth and man at set angles), each stem swaying on its own (11.5).
+
+## Epic 15 — Flowers on the page
+
+- [ ] **15.1 `flower-loader`** [A] (S) — a loader that blooms as it fills: petals open in step with a progress value, and the flower closes again for indeterminate progress.
+- [ ] **15.2 `garden-cursor`** [A] (S) — flowers sprout where the pointer rests and wilt away slowly behind it. A cursor trail with a season.
+- [ ] **15.3 `floral-text`** [B] (M) — a heading whose letters fill with flowers, packed by size inside the text field's outline (Poisson-disc packing with sizes), opening one by one. Or the letters' strokes as stems, budding along their length.
+- [ ] **15.4 `wreath`** [A] (S) — flowers and leaves arranged around a circle: an avatar's frame, a badge or a seasonal logo. Placement follows the circle with a rhythm of large and small flowers, as a florist's wreath does.
+- [ ] **15.5 `petal-burst`** [A] (S) — a celebration of petals instead of confetti: thrown up on a click and falling with 4.1's aerodynamics, curled petals tumbling as they fall.
+- [ ] **15.6 `bouquet`** [B] (M) — the visitor picks flowers to make a bouquet, and the stems gather into a spiral hand-tied bunch, as florists tie them, then sway together. A florist's product picker.
+- [ ] **15.7 `flower-dividers`** [A] (S) — section dividers: a row of small flowers along a rule, which open as the divider scrolls into view.
+
+## Epic 16 — Flower science
+
+- [ ] **16.1 `bee-vision`** [B] (M) — a flower bed seen as a bee sees it: the ultraviolet patterns (nectar guides) from 11.3 made visible, mapped to false colour by Chittka's bee colour hexagon. A slider moves between human and bee sight.
+- [ ] **16.2 `pollinators`** [B] (M) — bees visiting flowers, each choosing by the colour it learnt rewarded it (flower constancy), and carrying pollen between flowers of one species. An agent model in compute. Motion is capped: insects darting across the view are fast motion.
+- [ ] **16.3 `samaras`** [A] (S) — maple seeds spinning down. Lentink et al. showed that a samara autorotates on a leading-edge vortex, which slows its fall. They whirl from a branch, as 4.1's leaves fall, and a click releases a handful.
+- [ ] **16.4 `flower-clock`** [B] (M) — Linnaeus's flower clock, in which each species opens and closes at its own hour: a dial of flowers whose state tells the time. A clock widget that is also botany.
+- [ ] **16.5 `hydrangea`** [A] (S) — a hydrangea head that turns from pink to blue as a soil slider changes. Its colour follows the aluminium available to the pigment delphinidin, which the soil's acidity sets. A teaching widget.
+- [ ] **16.6 Flowers and the safety rules** [—] (S) — the cases particular to flowers:
+  - saturated red petals swaying are the red flash rule's case;
+  - spirals, rosettes, repeats and tulip stripes are its pattern cases;
+  - a field of nodding heads is whole-field motion.
+
+  Each case is measured, and a preset that goes over is gated, as 2.10 did for grass.
+
+## Epic 17 — Floral pages
+
+- [ ] **17.1 Florist hero** [B] (M) — a bouquet (15.6) beside the shop's heading, with petals drifting (4.3), on a light page.
+- [ ] **17.2 Wedding page** [B] (M) — an art nouveau frame (13.3) around the names, flowers opening as the guest scrolls to the details, and a petal burst (15.5) on the RSVP.
+- [ ] **17.3 Perfume launch** [C] (L) — a macro dewy bloom (12.8) opening slowly at golden hour, as the bottle's product shot. The page this epic most wants to prove.
+- [ ] **17.4 Botanical garden scroll story** [B] (M) — a flower's life down the page: seed, shoot, bud, bloom (12.2), the bee's view (16.1), seed head, seeds on the wind (4.6, 16.3).
+- [ ] **17.5 Seasonal greeting** [A] (S) — a spring or Mother's Day card: a wreath (15.4) and floral text (15.3), light enough for an email's landing page.
+
+## Epic 18 — Flowers measured and released
+
+- [ ] **18.1 Flower realism study** [—] (M) — `docs/studies/flower-realism.md`. Single flowers and the wildflower meadow beside photographs (Commons, credited, as 2.9's), blind pairs, and an ablation of 11.3's surface terms: velvet, gloss, translucency and structural colour, each switched off in turn.
+- [ ] **18.2 Floral design study** [—] (S) — each design effect in Epic 13 beside an example of its tradition, saying what makes it read as that tradition: block registration, Morris's repeat, Mucha's line. Examples are cited, and shown only where their licence allows.
+- [ ] **18.3 Flower costs** [—] (S) — every flower effect on Dawn and in Chrome, with petals and flowers drawn, so tiers are set as the grass's were.
+- [ ] **18.4 SVG and CSS flowers** [—] (S) — the best SVG version of a flower opening, a floral border and a petal burst beside the WebGPU ones, measured as 3.8 measured grass. Where SVG wins, the notes say so.
+- [ ] **18.5 Into the core** [—] (S) — the petal model, floral diagrams and petal optics move into `@mk7s/hologpu-temple-core`, beside the blade engine and leaf optics.
+
 ## Risks and open questions
 
 - **Blade count on integrated GPUs and phones.** A meadow that reads as real may want a million blades. If Tier B allows only a hundred thousand, how much of the realism survives? 2.9's cheapest recipe and 9.2 are the experiment.
@@ -473,7 +611,10 @@ The engine behind every grass effect, and the part that has to be right. Ghost o
 - **Memory.** Blades are generated each frame, but the trample field, sand, erosion and moss hold state. How much can a page hold with the other families' effects beside it?
 - **Reference photographs.** Their licences must allow showing them on a public site, with credit. The user's own photographs would avoid the question.
 - **Accent.** Terracotta sits near Fire Temple's amber. Check it in the holofx site's dropdown beside the other families before committing to it.
-- **Scope.** Seven epics of effects is a lot. Grass is first and must not be rushed. The ground epics (6 and 7) could move to hologpu if this family runs long.
+- **Flowers are harder than grass.** A blade is a curve; a petal is a surface with ruffles, cups and curls, and a rose has dozens. If 11.1's petals cannot be cheap enough for a field, the wildflower meadow falls back to cards for its far flowers, and the notes say where.
+- **Floral design and copying.** Morris and Mucha are public domain, but the designs here are grown, not traced, and block prints and crests are living traditions. The notes credit each tradition and copy no specific design.
+- **Red petals.** Saturated red is the red flash rule's case, and red flowers are common. 16.6 finds out how much movement a field of poppies can have.
+- **Scope.** Seven epics of effects is a lot, and the flowers add eight more. Grass is first and must not be rushed. The ground epics (6 and 7) could move to hologpu if this family runs long.
 
 ## Starting references
 
@@ -500,3 +641,14 @@ From memory, as the other families' plans began; each is to be confirmed against
 - Xing Mei, Philippe Decaudin and Bao-Gang Hu, "Fast Hydraulic Erosion Simulation and Visualization on GPU", Pacific Graphics 2007.
 - F. Kenton Musgrave, Craig Kolb and Robert Mace, "The synthesis and rendering of eroded fractal terrains", SIGGRAPH 1989.
 - Mike Linkovich, _Terra_ (2016), WebGL grass: the browser baseline.
+- Takashi Ijiri, Shigeru Owada, Makoto Okabe and Takeo Igarashi, "Floral diagrams and inflorescences: interactive flower modeling using botanical structural constraints", SIGGRAPH 2005.
+- Haiyi Liang and L. Mahadevan, "Growth, geometry, and mechanics of a blooming lily", _PNAS_ (2011).
+- Wouter van Doorn and Uulke van Meeteren, "Flower opening and closure: a review", _Journal of Experimental Botany_ (2003).
+- Kiyoshi Noda et al., "Flower colour intensity depends on specialized cell shape controlled by a Myb-related transcription factor", _Nature_ (1994).
+- Silvia Vignolini et al., "The mirror crack'd: both pigment and structure contribute to the glossy blue appearance of the mirror orchid", _Journal of the Royal Society Interface_ (2012), and the buttercup gloss work by the same group.
+- Heather Whitney et al., "Floral iridescence, produced by diffractive optics, acts as a cue for animal pollinators", _Science_ (2009).
+- Hagop Atamian et al., "Circadian regulation of sunflower heliotropism, floral orientation, and pollinator visits", _Science_ (2016).
+- Lars Chittka, "The colour hexagon: a chromaticity diagram based on photoreceptor excitations as a generalized representation of colour opponency", _Journal of Comparative Physiology A_ (1992).
+- David Lentink et al., "Leading-edge vortices elevate lift of autorotating plant seeds", _Science_ (2009).
+- Carl Linnaeus, _Philosophia Botanica_ (1751): the flower clock.
+- Przemyslaw Prusinkiewicz, Mark Hammel and Eric Mjolsness, "Animation of plant development", SIGGRAPH 1993.

@@ -29,6 +29,67 @@
       }
     },
     {
+      "id": "fur-text",
+      "title": "Fur text",
+      "summary": "A heading grown over with fur, grass or moss: strands drawn by shells from the letters’ distance field and lit as strands, which the pointer combs over and which slowly stand back up.",
+      "epic": "3",
+      "tier": "B",
+      "tags": [
+        "fur",
+        "grass",
+        "text",
+        "pointer",
+        "shells"
+      ],
+      "status": "demo",
+      "poster": "src/effects/fur-text/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "yes",
+        "features": {
+          "required": []
+        },
+        "fallback": "The heading in a warm brown with a soft text shadow, or the poster.",
+        "useCases": [
+          "A playful or tactile hero heading",
+          "A pet, textile or outdoor brand"
+        ]
+      }
+    },
+    {
+      "id": "grass-edges",
+      "title": "Grass on the page",
+      "summary": "Grass growing along the top edges of the page’s own headings, cards and buttons, and along the bottom of the view: it sprouts unevenly and fills in over time or as the page scrolls, sways in a wave of wind, and parts around the pointer.",
+      "epic": "3",
+      "tier": "A",
+      "tags": [
+        "grass",
+        "page",
+        "scroll",
+        "pointer"
+      ],
+      "status": "ready",
+      "poster": "src/effects/grass-edges/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "yes",
+        "features": {
+          "required": []
+        },
+        "fallback": "A CSS strip of grass along each element’s top edge, or nothing.",
+        "useCases": [
+          "A spring or seasonal landing page",
+          "A garden centre or sustainability site"
+        ]
+      }
+    },
+    {
       "id": "grass-footer",
       "title": "Grass footer",
       "summary": "A strip of grass along the bottom of the page, seen from just above the ground: blades placed, clumped, bent by gusts and culled in compute each frame, then drawn with indirect draws. The pointer parts it.",
@@ -57,6 +118,67 @@
           "A footer or section edge",
           "A spring or outdoor landing page",
           "An environmental brand"
+        ]
+      }
+    },
+    {
+      "id": "grass-growth",
+      "title": "Grass growth",
+      "summary": "A lawn growing in from bare ground as the page scrolls, or over time: patches sprout at their own moments and spread until they meet, each blade rising to its height. It shrinks back the same way.",
+      "epic": "3",
+      "tier": "B",
+      "tags": [
+        "grass",
+        "growth",
+        "scroll",
+        "compute"
+      ],
+      "status": "demo",
+      "poster": "src/effects/grass-growth/poster.webp",
+      "scorecard": {
+        "compute": true,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: patches of lawn coming up through bare soil.",
+        "useCases": [
+          "An onboarding or sign-up progress",
+          "A \"growth\" story on a landing page"
+        ]
+      }
+    },
+    {
+      "id": "lawn",
+      "title": "Lawn",
+      "summary": "A lawn seen from standing height. The pointer brushes a trail through it and a press treads it down; the grass rises back over a few seconds, without bouncing, to exactly upright. A cursor trail with a memory.",
+      "epic": "3",
+      "tier": "B",
+      "tags": [
+        "grass",
+        "trample",
+        "compute",
+        "indirect draws",
+        "pointer"
+      ],
+      "status": "demo",
+      "poster": "src/effects/lawn/poster.webp",
+      "scorecard": {
+        "compute": true,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: a still of the lawn.",
+        "useCases": [
+          "A garden, landscaping or outdoor-brand section",
+          "A playful cursor trail"
         ]
       }
     },
@@ -92,6 +214,68 @@
         "useCases": [
           "An outdoor or travel brand hero",
           "A landing page for spring or summer"
+        ]
+      }
+    },
+    {
+      "id": "mowing",
+      "title": "Mowing",
+      "summary": "A lawn being mown in stripes. The mower cuts the grass and lays it the way it travels; the stripes appear because grass laid away from you shows its lit upper side and grass laid towards you its shaded one. Drag to mow; left alone, it mows by a progress value, as a progress bar.",
+      "epic": "3",
+      "tier": "B",
+      "tags": [
+        "grass",
+        "stripes",
+        "compute",
+        "progress",
+        "pointer"
+      ],
+      "status": "demo",
+      "poster": "src/effects/mowing/poster.webp",
+      "scorecard": {
+        "compute": true,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: a half-mown lawn.",
+        "useCases": [
+          "A playful progress bar or loader",
+          "A garden or landscaping page"
+        ]
+      }
+    },
+    {
+      "id": "flower-opening",
+      "title": "A flower opening",
+      "summary": "One flower opening from the bud, over time or as the page scrolls: a lily, buttercup, cherry blossom, poppy, rose or camellia, built from its floral diagram, its petals grown surfaces that ruffle where their edges grew more.",
+      "epic": "12",
+      "tier": "A",
+      "tags": [
+        "flowers",
+        "petals",
+        "scroll",
+        "phyllotaxis"
+      ],
+      "status": "ready",
+      "poster": null,
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "low",
+        "pattern": "low",
+        "lightPage": "yes",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: the flower half open.",
+        "useCases": [
+          "A hero centrepiece",
+          "A section divider",
+          "A florist or spring page"
         ]
       }
     }

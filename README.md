@@ -26,11 +26,17 @@ npm run deploy     # build and upload dist/ to Cloudflare Pages (project earthte
 
 ## Effects
 
-| Id             | What                                                                                                                                                                                            | Tier |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| `hello`        | The smallest effect: a strip of flat 2D blades swaying in a wave of wind, one instanced draw                                                                                                    | A    |
-| `grass-footer` | A strip of grass along the bottom of the page: blades placed, clumped, bent by gusts and culled in compute, drawn with indirect draws; the pointer parts it                                     | B    |
-| `meadow`       | A meadow at eye level to the horizon: pigment-coloured grass lit through the blades, gusts and cloud shadows, wildflowers, pollen, depth of field; the pointer brushes a path that springs back | C    |
+| Id               | What                                                                                                                                                                                            | Tier |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| `hello`          | The smallest effect: a strip of flat 2D blades swaying in a wave of wind, one instanced draw                                                                                                    | A    |
+| `grass-footer`   | A strip of grass along the bottom of the page: blades placed, clumped, bent by gusts and culled in compute, drawn with indirect draws; the pointer parts it                                     | B    |
+| `meadow`         | A meadow at eye level to the horizon: pigment-coloured grass lit through the blades, gusts and cloud shadows, wildflowers, pollen, depth of field; the pointer brushes a path that springs back | C    |
+| `lawn`           | A lawn seen from above at an angle: the pointer brushes and treads it, and the grass stands back up over seconds                                                                                | B    |
+| `mowing`         | The lawn mown in rows, as a progress bar or by dragging: stripes from stubble laid towards and away from the viewer, not painted                                                                | B    |
+| `grass-growth`   | A lawn growing in from bare soil, over time or as the page scrolls: patches sprout and spread until they meet                                                                                   | B    |
+| `grass-edges`    | Grass growing along the top edges of the page's headings, cards and buttons, swaying and parting around the pointer                                                                             | A    |
+| `fur-text`       | A heading grown over with fur, grass or moss by shells, lit as strands, which the pointer combs                                                                                                 | B    |
+| `flower-opening` | One flower opening, from its floral diagram: a lily, buttercup, cherry blossom, poppy, rose or camellia, its petals grown surfaces that ruffle where their edges grew more                      | A    |
 
 ## Layout
 
@@ -38,7 +44,10 @@ npm run deploy     # build and upload dist/ to Cloudflare Pages (project earthte
 src/gpu/grass/              the blade engine: blade curve and species, placement and clumps, culling,
                             LOD lists and indirect draws, the ground camera, the multisampled strip
 src/gpu/wind/               the ground wind (twin of src/wgsl/wind.wgsl): gust fronts, lean, flutter;
-                            the trample field: what is pressed down, springing back
+                            the trample field: what is pressed down, springing back, and what a
+                            mower has laid
+src/gpu/flower/              the flower model: petals as grown surfaces (twin of src/wgsl/petal.wgsl),
+                            floral diagrams of whorls and golden-angle spirals
 src/gpu/optics/leaf.ts      leaf colours from pigments, by a plate model after PROSPECT
 src/gpu/hash.ts             twins of the shader hashes, so CPU models make the same random choices
 src/gpu/safety/             dose, the pattern analyser, motion estimate, colour caps and the start gate's rules
