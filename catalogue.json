@@ -1,0 +1,99 @@
+{
+  "project": "earthtemple",
+  "effects": [
+    {
+      "id": "hello",
+      "title": "Hello",
+      "summary": "The smallest effect: a strip of flat 2D blades along the bottom of the view, swaying in a wave of wind, one instanced draw through the HDR tail, over the page. Every later effect starts from this shape.",
+      "epic": "1",
+      "tier": "A",
+      "tags": [
+        "scaffold",
+        "grass"
+      ],
+      "status": "ready",
+      "poster": "src/effects/hello/poster.webp",
+      "scorecard": {
+        "compute": false,
+        "mobile": "untested",
+        "flash": "none",
+        "pattern": "none",
+        "lightPage": "yes",
+        "features": {
+          "required": []
+        },
+        "fallback": "A row of SVG blades, or the poster.",
+        "useCases": [
+          "The template for new effects"
+        ]
+      }
+    },
+    {
+      "id": "grass-footer",
+      "title": "Grass footer",
+      "summary": "A strip of grass along the bottom of the page, seen from just above the ground: blades placed, clumped, bent by gusts and culled in compute each frame, then drawn with indirect draws. The pointer parts it.",
+      "epic": "3",
+      "tier": "B",
+      "tags": [
+        "grass",
+        "wind",
+        "compute",
+        "indirect draws",
+        "pointer"
+      ],
+      "status": "demo",
+      "poster": "src/effects/grass-footer/poster.webp",
+      "scorecard": {
+        "compute": true,
+        "mobile": "untested",
+        "flash": "low",
+        "pattern": "low",
+        "lightPage": "yes",
+        "features": {
+          "required": []
+        },
+        "fallback": "A row of SVG blades swaying with CSS transforms, or the poster.",
+        "useCases": [
+          "A footer or section edge",
+          "A spring or outdoor landing page",
+          "An environmental brand"
+        ]
+      }
+    },
+    {
+      "id": "meadow",
+      "title": "Meadow",
+      "summary": "A meadow at eye level running to the horizon: tall grass with seed heads and wildflowers, coloured from leaf pigments and lit through the blades when the sun is behind them; gusts and cloud shadows crossing it, pollen in the light, the nearest blades out of focus. The pointer brushes a path that springs back.",
+      "epic": "3",
+      "tier": "C",
+      "tags": [
+        "grass",
+        "wind",
+        "compute",
+        "indirect draws",
+        "depth of field",
+        "hero"
+      ],
+      "status": "demo",
+      "poster": "src/effects/meadow/poster.webp",
+      "scorecard": {
+        "compute": true,
+        "mobile": "untested",
+        "flash": "low",
+        "pattern": "none",
+        "motionPresets": [
+          "walk through"
+        ],
+        "lightPage": "no",
+        "features": {
+          "required": []
+        },
+        "fallback": "The poster: a still of the meadow, or a photograph.",
+        "useCases": [
+          "An outdoor or travel brand hero",
+          "A landing page for spring or summer"
+        ]
+      }
+    }
+  ]
+}

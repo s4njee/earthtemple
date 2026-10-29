@@ -1,0 +1,1082 @@
+{
+  "epic": "3",
+  "measuredAt": "2026-10-29T08:17:21.297Z",
+  "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+  "deviceClass": "unclassified",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m1-max",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+  },
+  "runtime": "Dawn (node webgpu bindings)",
+  "method": {
+    "metric": "GPU timestamps: frame span (first pass start to last pass end) and marginal cost per extra frame",
+    "warmupFrames": 12,
+    "rounds": 11,
+    "repeats": 4
+  },
+  "note": "Only this adapter was measured. spanMs includes the timing floor (see the \"(floor)\" rows); slopeMs is the cost of one more frame of the same work and is the number to compare by. A slope at or below zero means the work is below what this method can resolve.",
+  "rows": [
+    {
+      "effect": "(floor)",
+      "config": "one constant-colour pass",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 0.065536,
+      "slopeMs": 0.065536,
+      "slopeMinMs": 0.021845333333333338,
+      "slopeMaxMs": 0.4369066666666666,
+      "passes": 1,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "(tail)",
+      "config": "constant scene + bloom + output",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 0.720896,
+      "slopeMs": 0.6772053333333332,
+      "slopeMinMs": 0.6553599999999999,
+      "slopeMaxMs": 1.2014933333333335,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "default",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 1.31072,
+      "slopeMs": 0.8301226666666667,
+      "slopeMinMs": 0.589824,
+      "slopeMaxMs": 1.3981013333333332,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset meadow",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 1.179648,
+      "slopeMs": 0.7427413333333334,
+      "slopeMinMs": 0.5024426666666667,
+      "slopeMaxMs": 1.0704213333333332,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset lawn",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 1.048576,
+      "slopeMs": 0.6772053333333332,
+      "slopeMinMs": 0.458752,
+      "slopeMaxMs": 1.3325653333333334,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset golden hour",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 1.441792,
+      "slopeMs": 1.1141120000000002,
+      "slopeMinMs": 0.6335146666666668,
+      "slopeMaxMs": 1.3762560000000004,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset dry grass",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 1.114112,
+      "slopeMs": 0.6990506666666666,
+      "slopeMinMs": 0.6116693333333333,
+      "slopeMaxMs": 0.9611946666666666,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset overcast",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 1.179648,
+      "slopeMs": 0.6990506666666668,
+      "slopeMinMs": 0.589824,
+      "slopeMaxMs": 1.0048853333333334,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "default",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 2.555904,
+      "slopeMs": 2.2282239999999995,
+      "slopeMinMs": 1.987925333333333,
+      "slopeMaxMs": 2.7525119999999994,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset midday",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 2.555904,
+      "slopeMs": 2.097152,
+      "slopeMinMs": 1.900544,
+      "slopeMaxMs": 2.206378666666667,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset golden hour",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 3.735552,
+      "slopeMs": 3.3641813333333332,
+      "slopeMinMs": 3.0583466666666665,
+      "slopeMaxMs": 3.7792426666666663,
+      "passes": 14,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset dusk",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 4.128768,
+      "slopeMs": 3.60448,
+      "slopeMinMs": 3.407872,
+      "slopeMaxMs": 3.713706666666667,
+      "passes": 14,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset sparse",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 1.835008,
+      "slopeMs": 1.7257813333333332,
+      "slopeMinMs": 1.5291733333333333,
+      "slopeMaxMs": 1.7694720000000002,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset walk through",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 2.555904,
+      "slopeMs": 2.0753066666666666,
+      "slopeMinMs": 1.900544,
+      "slopeMaxMs": 2.2500693333333337,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "density=0.25",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "density": 0.25
+      },
+      "spanMs": 0.524288,
+      "slopeMs": 0.32768,
+      "slopeMinMs": 0.15291733333333335,
+      "slopeMaxMs": 0.45875200000000005,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "density=0.5",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "density": 0.5
+      },
+      "spanMs": 0.720896,
+      "slopeMs": 0.41506133333333334,
+      "slopeMinMs": 0.3713706666666667,
+      "slopeMaxMs": 0.7645866666666666,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "density=1",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "density": 1
+      },
+      "spanMs": 1.31072,
+      "slopeMs": 0.8301226666666667,
+      "slopeMinMs": 0.6116693333333333,
+      "slopeMaxMs": 0.9611946666666666,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "band=0.2",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "band": 0.2
+      },
+      "spanMs": 1.114112,
+      "slopeMs": 0.851968,
+      "slopeMinMs": 0.6990506666666665,
+      "slopeMaxMs": 1.2888746666666668,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "band=0.6",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "band": 0.6
+      },
+      "spanMs": 1.179648,
+      "slopeMs": 0.851968,
+      "slopeMinMs": 0.6116693333333334,
+      "slopeMaxMs": 1.376256,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "band=0.9",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "band": 0.9
+      },
+      "spanMs": 1.31072,
+      "slopeMs": 0.7208960000000001,
+      "slopeMinMs": 0.3058346666666667,
+      "slopeMaxMs": 1.0922666666666665,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "height=0.5",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "height": 0.5
+      },
+      "spanMs": 1.048576,
+      "slopeMs": 0.7427413333333334,
+      "slopeMinMs": 0.524288,
+      "slopeMaxMs": 1.0267306666666667,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "height=2",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "height": 2
+      },
+      "spanMs": 1.572864,
+      "slopeMs": 0.9830399999999999,
+      "slopeMinMs": 0.8738133333333332,
+      "slopeMaxMs": 1.3107199999999999,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=clumps",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "clumps"
+      },
+      "spanMs": 2.555904,
+      "slopeMs": 1.987925333333333,
+      "slopeMinMs": 1.9223893333333333,
+      "slopeMaxMs": 2.4029866666666666,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=translucency",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "translucency"
+      },
+      "spanMs": 2.555904,
+      "slopeMs": 2.097152,
+      "slopeMinMs": 1.8786986666666667,
+      "slopeMaxMs": 2.9054293333333328,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=sheen",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "sheen"
+      },
+      "spanMs": 2.424832,
+      "slopeMs": 1.900544,
+      "slopeMinMs": 1.7257813333333336,
+      "slopeMaxMs": 2.118997333333333,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=canopy",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "canopy"
+      },
+      "spanMs": 2.555904,
+      "slopeMs": 2.0753066666666666,
+      "slopeMinMs": 2.031616,
+      "slopeMaxMs": 2.2282240000000004,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=gusts",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "gusts"
+      },
+      "spanMs": 2.555904,
+      "slopeMs": 2.097152,
+      "slopeMinMs": 1.8786986666666667,
+      "slopeMaxMs": 2.2500693333333337,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=clouds",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "clouds"
+      },
+      "spanMs": 2.031616,
+      "slopeMs": 1.507328,
+      "slopeMinMs": 1.376256,
+      "slopeMaxMs": 1.6602453333333334,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=fog",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "fog"
+      },
+      "spanMs": 2.490368,
+      "slopeMs": 2.0534613333333334,
+      "slopeMinMs": 1.8786986666666667,
+      "slopeMaxMs": 2.184533333333333,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=antialias",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "antialias"
+      },
+      "spanMs": 1.900544,
+      "slopeMs": 1.4854826666666667,
+      "slopeMinMs": 1.3544106666666667,
+      "slopeMaxMs": 1.7257813333333332,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=depth of field",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "depth of field"
+      },
+      "spanMs": 2.62144,
+      "slopeMs": 2.0534613333333334,
+      "slopeMinMs": 1.8786986666666667,
+      "slopeMaxMs": 2.2500693333333337,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=pollen",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "pollen"
+      },
+      "spanMs": 2.555904,
+      "slopeMs": 2.0753066666666666,
+      "slopeMinMs": 1.900544,
+      "slopeMaxMs": 2.2063786666666663,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=flowers",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "ablate": "flowers"
+      },
+      "spanMs": 2.555904,
+      "slopeMs": 2.184533333333334,
+      "slopeMinMs": 1.9223893333333333,
+      "slopeMaxMs": 2.359296,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "time=golden hour ablate=depth of field",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "time": "golden hour",
+        "ablate": "depth of field"
+      },
+      "spanMs": 2.29376,
+      "slopeMs": 1.9442346666666668,
+      "slopeMinMs": 1.703936,
+      "slopeMaxMs": 2.5340586666666667,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "time=golden hour ablate=antialias",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "time": "golden hour",
+        "ablate": "antialias"
+      },
+      "spanMs": 3.211264,
+      "slopeMs": 2.8180479999999997,
+      "slopeMinMs": 2.643285333333333,
+      "slopeMaxMs": 2.9928106666666667,
+      "passes": 14,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "distance=shells",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "distance": "shells"
+      },
+      "spanMs": 2.818048,
+      "slopeMs": 2.29376,
+      "slopeMinMs": 2.2500693333333333,
+      "slopeMaxMs": 2.4466773333333336,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "density=0.3",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "density": 0.3
+      },
+      "spanMs": 1.6384,
+      "slopeMs": 1.4854826666666667,
+      "slopeMinMs": 1.3981013333333332,
+      "slopeMaxMs": 1.6602453333333334,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "density=0.5",
+      "width": 1920,
+      "height": 1080,
+      "params": {
+        "density": 0.5
+      },
+      "spanMs": 1.96608,
+      "slopeMs": 1.8131626666666667,
+      "slopeMinMs": 1.7257813333333332,
+      "slopeMaxMs": 2.009770666666667,
+      "passes": 13,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "(floor)",
+      "config": "one constant-colour pass",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.065536,
+      "slopeMs": 0.04369066666666666,
+      "slopeMinMs": 0.02184533333333333,
+      "slopeMaxMs": 0.065536,
+      "passes": 1,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "(tail)",
+      "config": "constant scene + bloom + output",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.393216,
+      "slopeMs": 0.3058346666666667,
+      "slopeMinMs": 0.15291733333333338,
+      "slopeMaxMs": 0.32768,
+      "passes": 9,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "default",
+      "width": 960,
+      "height": 540,
+      "spanMs": 1.048576,
+      "slopeMs": 0.8956586666666667,
+      "slopeMinMs": 0.41506133333333334,
+      "slopeMaxMs": 1.4854826666666667,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset meadow",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.786432,
+      "slopeMs": 0.65536,
+      "slopeMinMs": 0.21845333333333347,
+      "slopeMaxMs": 1.2233386666666666,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset lawn",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.65536,
+      "slopeMs": 0.524288,
+      "slopeMinMs": 0.4805973333333333,
+      "slopeMaxMs": 0.8082773333333333,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset golden hour",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.917504,
+      "slopeMs": 0.6335146666666667,
+      "slopeMinMs": 0.524288,
+      "slopeMaxMs": 1.3981013333333336,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset dry grass",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.786432,
+      "slopeMs": 0.6116693333333333,
+      "slopeMinMs": 0.4805973333333333,
+      "slopeMaxMs": 0.7208960000000001,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "preset overcast",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.720896,
+      "slopeMs": 0.589824,
+      "slopeMinMs": 0.458752,
+      "slopeMaxMs": 0.7864319999999999,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "default",
+      "width": 960,
+      "height": 540,
+      "spanMs": 1.703936,
+      "slopeMs": 1.4636373333333335,
+      "slopeMinMs": 1.1359573333333335,
+      "slopeMaxMs": 1.9442346666666666,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset midday",
+      "width": 960,
+      "height": 540,
+      "spanMs": 1.6384,
+      "slopeMs": 1.3544106666666667,
+      "slopeMinMs": 1.2014933333333335,
+      "slopeMaxMs": 1.5291733333333335,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset golden hour",
+      "width": 960,
+      "height": 540,
+      "spanMs": 2.097152,
+      "slopeMs": 1.5728639999999998,
+      "slopeMinMs": 1.4417920000000002,
+      "slopeMaxMs": 1.8786986666666667,
+      "passes": 12,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset dusk",
+      "width": 960,
+      "height": 540,
+      "spanMs": 2.359296,
+      "slopeMs": 1.813162666666667,
+      "slopeMinMs": 1.6602453333333334,
+      "slopeMaxMs": 2.140842666666667,
+      "passes": 12,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset sparse",
+      "width": 960,
+      "height": 540,
+      "spanMs": 1.114112,
+      "slopeMs": 0.98304,
+      "slopeMinMs": 0.8301226666666667,
+      "slopeMaxMs": 1.2233386666666666,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "preset walk through",
+      "width": 960,
+      "height": 540,
+      "spanMs": 1.835008,
+      "slopeMs": 1.4417920000000002,
+      "slopeMinMs": 1.2233386666666666,
+      "slopeMaxMs": 2.337450666666667,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "density=0.25",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "density": 0.25
+      },
+      "spanMs": 0.458752,
+      "slopeMs": 0.30583466666666664,
+      "slopeMinMs": 0.17476266666666665,
+      "slopeMaxMs": 0.5461333333333335,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "density=0.5",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "density": 0.5
+      },
+      "spanMs": 0.917504,
+      "slopeMs": 0.8301226666666667,
+      "slopeMinMs": 0.45875200000000005,
+      "slopeMaxMs": 1.179648,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "density=1",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "density": 1
+      },
+      "spanMs": 0.917504,
+      "slopeMs": 0.7427413333333334,
+      "slopeMinMs": 0.6116693333333334,
+      "slopeMaxMs": 1.1359573333333335,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "band=0.2",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "band": 0.2
+      },
+      "spanMs": 0.98304,
+      "slopeMs": 0.9611946666666666,
+      "slopeMinMs": 0.786432,
+      "slopeMaxMs": 1.2888746666666666,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "band=0.6",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "band": 0.6
+      },
+      "spanMs": 1.114112,
+      "slopeMs": 0.98304,
+      "slopeMinMs": 0.6335146666666667,
+      "slopeMaxMs": 1.4199466666666665,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "band=0.9",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "band": 0.9
+      },
+      "spanMs": 0.98304,
+      "slopeMs": 0.6990506666666666,
+      "slopeMinMs": 0.4805973333333333,
+      "slopeMaxMs": 1.3981013333333336,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "height=0.5",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "height": 0.5
+      },
+      "spanMs": 1.048576,
+      "slopeMs": 0.851968,
+      "slopeMinMs": 0.6772053333333333,
+      "slopeMaxMs": 1.2233386666666668,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "grass-footer",
+      "config": "height=2",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "height": 2
+      },
+      "spanMs": 1.31072,
+      "slopeMs": 0.7645866666666667,
+      "slopeMinMs": 0.5461333333333335,
+      "slopeMaxMs": 1.9442346666666666,
+      "passes": 3,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=clumps",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "clumps"
+      },
+      "spanMs": 2.031616,
+      "slopeMs": 1.1578026666666668,
+      "slopeMinMs": 0.917504,
+      "slopeMaxMs": 2.118997333333333,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=translucency",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "translucency"
+      },
+      "spanMs": 1.6384,
+      "slopeMs": 1.31072,
+      "slopeMinMs": 1.179648,
+      "slopeMaxMs": 1.8568533333333335,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=sheen",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "sheen"
+      },
+      "spanMs": 1.6384,
+      "slopeMs": 1.3981013333333332,
+      "slopeMinMs": 1.1578026666666668,
+      "slopeMaxMs": 1.6602453333333334,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=canopy",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "canopy"
+      },
+      "spanMs": 1.6384,
+      "slopeMs": 1.4636373333333335,
+      "slopeMinMs": 1.1796480000000003,
+      "slopeMaxMs": 2.206378666666667,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=gusts",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "gusts"
+      },
+      "spanMs": 1.703936,
+      "slopeMs": 1.419946666666667,
+      "slopeMinMs": 1.2451839999999998,
+      "slopeMaxMs": 1.7476266666666669,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=clouds",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "clouds"
+      },
+      "spanMs": 1.507328,
+      "slopeMs": 1.245184,
+      "slopeMinMs": 1.1141119999999998,
+      "slopeMaxMs": 1.5291733333333333,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=fog",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "fog"
+      },
+      "spanMs": 1.835008,
+      "slopeMs": 1.4636373333333335,
+      "slopeMinMs": 1.2670293333333333,
+      "slopeMaxMs": 2.315605333333333,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=antialias",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "antialias"
+      },
+      "spanMs": 1.6384,
+      "slopeMs": 1.3325653333333334,
+      "slopeMinMs": 1.1359573333333335,
+      "slopeMaxMs": 2.2500693333333333,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=depth of field",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "depth of field"
+      },
+      "spanMs": 1.6384,
+      "slopeMs": 1.2670293333333333,
+      "slopeMinMs": 1.179648,
+      "slopeMaxMs": 1.5947093333333333,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=pollen",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "pollen"
+      },
+      "spanMs": 1.6384,
+      "slopeMs": 1.2014933333333335,
+      "slopeMinMs": 1.1578026666666668,
+      "slopeMaxMs": 1.6165546666666668,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "ablate=flowers",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "ablate": "flowers"
+      },
+      "spanMs": 1.703936,
+      "slopeMs": 1.2888746666666668,
+      "slopeMinMs": 1.179648,
+      "slopeMaxMs": 1.8568533333333335,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "time=golden hour ablate=depth of field",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "time": "golden hour",
+        "ablate": "depth of field"
+      },
+      "spanMs": 1.703936,
+      "slopeMs": 1.419946666666667,
+      "slopeMinMs": 1.3325653333333334,
+      "slopeMaxMs": 1.7694720000000002,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "time=golden hour ablate=antialias",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "time": "golden hour",
+        "ablate": "antialias"
+      },
+      "spanMs": 1.835008,
+      "slopeMs": 1.507328,
+      "slopeMinMs": 1.2233386666666666,
+      "slopeMaxMs": 1.7257813333333332,
+      "passes": 12,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "distance=shells",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "distance": "shells"
+      },
+      "spanMs": 2.031616,
+      "slopeMs": 1.4636373333333335,
+      "slopeMinMs": 1.245184,
+      "slopeMaxMs": 1.7257813333333332,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "density=0.3",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "density": 0.3
+      },
+      "spanMs": 1.31072,
+      "slopeMs": 1.179648,
+      "slopeMinMs": 0.9393493333333334,
+      "slopeMaxMs": 1.5510186666666665,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "meadow",
+      "config": "density=0.5",
+      "width": 960,
+      "height": 540,
+      "params": {
+        "density": 0.5
+      },
+      "spanMs": 1.507328,
+      "slopeMs": 1.3544106666666667,
+      "slopeMinMs": 1.114112,
+      "slopeMaxMs": 1.572864,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    }
+  ]
+}

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grass blind pairs</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f7f4ef;
+        --text: #1a1510;
+        --muted: #6b5f52;
+        --border: #d9d0c2;
+        --accent: #a3462b;
+        --good: #1f7a4d;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d0b09;
+          --text: #f1ebe3;
+          --muted: #ad9f8f;
+          --border: #332a22;
+          --accent: #e38b6d;
+          --good: #6fd6a0;
+        }
+      }
+      body {
+        margin: 0 auto;
+        max-width: 1100px;
+        padding: 24px 16px 64px;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 4px;
+      }
+      p {
+        color: var(--muted);
+        margin: 0 0 16px;
+      }
+      section {
+        border-top: 1px solid var(--border);
+        padding: 16px 0;
+      }
+      .q {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      button.pick {
+        position: relative;
+        padding: 0;
+        border: 3px solid transparent;
+        border-radius: 6px;
+        background: none;
+        cursor: pointer;
+        overflow: hidden;
+      }
+      button.pick img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+      button.pick span {
+        position: absolute;
+        left: 8px;
+        top: 6px;
+        padding: 0 6px;
+        border-radius: 4px;
+        background: #0009;
+        color: #fff;
+        font-weight: 700;
+      }
+      button.pick[aria-pressed='true'] {
+        border-color: var(--accent);
+      }
+      .answer {
+        min-height: 1.5em;
+        margin-top: 6px;
+        color: var(--muted);
+      }
+      .answer b {
+        color: var(--good);
+      }
+      #score {
+        position: sticky;
+        bottom: 0;
+        padding: 10px 0;
+        background: var(--bg);
+        border-top: 1px solid var(--border);
+        font-weight: 600;
+      }
+      @media (max-width: 640px) {
+        .pair {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Grass blind pairs</h1>
+    <p>
+      Story 2.9. Two kinds of pair, each shown in an order that hides which is which. Pick one; the
+      answer shows once you have. The first five set a Commons photograph against Earth Temple's
+      render matched to it. The rest set the full recipe against the same frame with one subtle part
+      switched off: the parts the ablation could not tell apart by eye. Your picks stay in this
+      browser only.
+    </p>
+    <main id="pairs"></main>
+    <div id="score"></div>
+    <script>
+      const PHOTOS = [
+        ['golden-hour', 'A backlit field at golden hour'],
+        ['meadow-midday', 'A meadow at midday'],
+        ['dry-grass', 'Dry grass'],
+        ['lawn-low', 'A lawn at ground level'],
+        ['lawn-standing', 'A lawn from standing height'],
+      ].map(([n, label]) => ({
+        q: `${label}: which is the photograph?`,
+        right: `photos/${n}.jpg`,
+        wrong: `matches/${n}.jpg`,
+        rightName: 'the photograph',
+        wrongName: 'the render',
+      }));
+      const PARTS = [
+        ['golden-hour', 'clumps'],
+        ['golden-hour', 'variation'],
+        ['golden-hour', 'dry'],
+        ['golden-hour', 'rounded'],
+        ['golden-hour', 'sheen'],
+        ['midday', 'clumps'],
+        ['midday', 'variation'],
+        ['midday', 'dry'],
+        ['midday', 'rounded'],
+        ['midday', 'sheen'],
+        ['midday', 'antialias'],
+      ].map(([light, part]) => ({
+        q: `${light === 'midday' ? 'Midday' : 'Golden hour'}: which looks more real?`,
+        right: `${light}-none.jpg`,
+        wrong: `${light}-${part}.jpg`,
+        rightName: 'the full recipe',
+        wrongName: `the frame without ${part === 'antialias' ? 'multisampling' : part}`,
+      }));
+      const ALL = [...PHOTOS, ...PARTS];
+      // Sides from a fixed sequence, so the key is the same for everyone (and not in plain sight).
+      let seed = 20261029;
+      const coin = () => ((seed = (seed * 1103515245 + 12345) >>> 0) >>> 16) & 1;
+      const sides = ALL.map(() => coin());
+      const KEY = 'earthtemple-blind-pairs';
+      let picks = {};
+      try {
+        picks = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+      } catch {}
+      const save = () => {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(picks));
+        } catch {}
+      };
+      const root = document.getElementById('pairs');
+      const score = document.getElementById('score');
+      function render() {
+        root.innerHTML = '';
+        let answered = 0;
+        let found = { photos: 0, parts: 0 };
+        ALL.forEach((pair, i) => {
+          const order = sides[i] ? [pair.right, pair.wrong] : [pair.wrong, pair.right];
+          const section = document.createElement('section');
+          section.innerHTML = `<div class="q">${i + 1}. ${pair.q}</div><div class="pair"></div><div class="answer"></div>`;
+          const grid = section.querySelector('.pair');
+          order.forEach((src, side) => {
+            const b = document.createElement('button');
+            b.className = 'pick';
+            b.setAttribute('aria-pressed', String(picks[i] === side));
+            b.setAttribute('aria-label', `${side ? 'B' : 'A'}`);
+            b.innerHTML = `<img src="${src}" alt="" loading="lazy"><span>${side ? 'B' : 'A'}</span>`;
+            b.onclick = () => {
+              picks[i] = side;
+              save();
+              render();
+            };
+            grid.append(b);
+          });
+          if (picks[i] !== undefined) {
+            answered++;
+            const rightSide = order.indexOf(pair.right);
+            const correct = picks[i] === rightSide;
+            if (correct) found[i < PHOTOS.length ? 'photos' : 'parts']++;
+            section.querySelector('.answer').innerHTML =
+              `${rightSide ? 'B' : 'A'} is ${pair.rightName}; ${rightSide ? 'A' : 'B'} is ${pair.wrongName}. ` +
+              (correct ? '<b>You picked it.</b>' : 'You picked the other.');
+          }
+          root.append(section);
+        });
+        score.textContent =
+          `${answered} of ${ALL.length} answered. Photographs found: ${found.photos} of ${PHOTOS.length}. ` +
+          `Full recipe preferred: ${found.parts} of ${PARTS.length} (about half would mean the part is invisible).`;
+      }
+      render();
+    </script>
+  </body>
+</html>

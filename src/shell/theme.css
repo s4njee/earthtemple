@@ -1,0 +1,253 @@
+/*
+ * Design tokens and the few primitives every shell component shares.
+ * The effects carry the page: chrome stays quiet, flat, and low-contrast against them.
+ * Components use these tokens only; no new colours, radii, or font sizes elsewhere.
+ *
+ * Light and dark equally: grass and leaves read differently over each, and both are tested.
+ * Neutrals are warm greys, a little brown, like soil.
+ * The accent is the only terracotta; tier colours stay away from it.
+ */
+
+:root {
+  color-scheme: dark;
+
+  --et-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --et-font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --et-text-xs: 0.75rem;
+  --et-text-s: 0.8125rem;
+  --et-text-m: 0.9375rem;
+  --et-text-l: 1.25rem;
+  --et-text-xl: 1.75rem;
+
+  --et-space-1: 4px;
+  --et-space-2: 8px;
+  --et-space-3: 12px;
+  --et-space-4: 16px;
+  --et-space-5: 24px;
+  --et-space-6: 40px;
+
+  --et-radius-s: 4px;
+  --et-radius-m: 8px;
+  --et-radius-l: 14px;
+
+  --et-bg: light-dark(#f7f4ef, #0d0b09);
+  --et-surface: light-dark(#fffdf9, #15120f);
+  --et-surface-2: light-dark(#ece6dc, #1f1a15);
+  --et-border: light-dark(#d9d0c2, #332a22);
+  --et-text: light-dark(#1a1510, #f1ebe3);
+  --et-text-muted: light-dark(#6b5f52, #ad9f8f);
+  --et-accent: light-dark(#a3462b, #e38b6d);
+  --et-on-accent: light-dark(#fffdf9, #1a0d07);
+  --et-focus: light-dark(#a3462b, #f2b8a2);
+
+  /* Practicality tiers: A drop-in, B feature, C showpiece. Hues clear of the terracotta
+     accent: green, violet and amber. */
+  --et-tier-a: light-dark(#1f7a4d, #6fd6a0);
+  --et-tier-b: light-dark(#6a4bc4, #b8a4ff);
+  --et-tier-c: light-dark(#8a5300, #f2c46f);
+
+  --et-header-height: 52px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='auto'] {
+  color-scheme: light dark;
+}
+
+/*
+ * A subtree can be shown as the other kind of page (the effect stage does this, story 2.7): the
+ * tokens are light-dark() values, so they follow whatever colour scheme the element has.
+ */
+[data-page='light'] {
+  color-scheme: light;
+}
+
+[data-page='dark'] {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--et-bg);
+  color: var(--et-text);
+  font: var(--et-text-m) / 1.5 var(--et-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--et-accent);
+  text-underline-offset: 0.15em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--et-focus);
+  outline-offset: 2px;
+}
+
+/* Numbers and code: tabular so readouts do not jitter as they update. */
+.et-data {
+  font-family: var(--et-font-mono);
+  font-size: var(--et-text-s);
+  font-variant-numeric: tabular-nums;
+}
+
+.et-muted {
+  color: var(--et-text-muted);
+}
+
+.et-label {
+  color: var(--et-text-muted);
+  font-size: var(--et-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.et-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--et-space-2);
+  min-height: 32px;
+  padding: 0 var(--et-space-3);
+  border: 1px solid var(--et-border);
+  border-radius: var(--et-radius-m);
+  background: var(--et-surface);
+  color: var(--et-text);
+  font: inherit;
+  font-size: var(--et-text-s);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.et-button:hover {
+  background: var(--et-surface-2);
+}
+
+.et-button[aria-pressed='true'],
+.et-button--primary {
+  border-color: var(--et-accent);
+  background: var(--et-accent);
+  color: var(--et-on-accent);
+}
+
+.et-button--quiet {
+  border-color: transparent;
+  background: transparent;
+}
+
+.et-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--et-space-2);
+  border: 1px solid var(--et-border);
+  border-radius: 999px;
+  color: var(--et-text-muted);
+  font-size: var(--et-text-xs);
+  white-space: nowrap;
+}
+
+/* Tier chips: add data-tier="A" | "B" | "C". */
+.et-chip[data-tier] {
+  border-color: currentColor;
+  font-weight: 600;
+}
+
+.et-chip[data-tier='A'] {
+  color: var(--et-tier-a);
+}
+
+.et-chip[data-tier='B'] {
+  color: var(--et-tier-b);
+}
+
+.et-chip[data-tier='C'] {
+  color: var(--et-tier-c);
+}
+
+.et-panel {
+  border: 1px solid var(--et-border);
+  border-radius: var(--et-radius-l);
+  background: var(--et-surface);
+}
+
+.et-tabs {
+  display: flex;
+  gap: var(--et-space-4);
+  border-bottom: 1px solid var(--et-border);
+}
+
+.et-tab {
+  margin-bottom: -1px;
+  padding: var(--et-space-2) 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--et-text-muted);
+  font: inherit;
+  font-size: var(--et-text-s);
+  cursor: pointer;
+}
+
+.et-tab[aria-selected='true'] {
+  border-bottom-color: var(--et-accent);
+  color: var(--et-text);
+}
+
+/* Long-form text: write-ups and notes. */
+.et-prose {
+  max-width: 68ch;
+  line-height: 1.65;
+}
+
+.et-prose > * + * {
+  margin-top: var(--et-space-4);
+}
+
+.et-prose h2 {
+  margin-top: var(--et-space-5);
+  font-size: var(--et-text-l);
+}
+
+.et-prose h3 {
+  font-size: var(--et-text-m);
+}
+
+.et-prose code {
+  padding: 0.1em 0.3em;
+  border-radius: var(--et-radius-s);
+  background: var(--et-surface-2);
+  font-family: var(--et-font-mono);
+  font-size: 0.9em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

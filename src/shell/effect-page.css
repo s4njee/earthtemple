@@ -1,0 +1,105 @@
+.et-effect {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--et-space-5);
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: var(--et-space-5);
+}
+
+.et-effect__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--et-space-3);
+  min-width: 0;
+}
+
+.et-effect__stage {
+  position: relative;
+  height: min(64vh, 720px);
+  min-height: 320px;
+  overflow: hidden;
+  border: 1px solid var(--et-border);
+  border-radius: var(--et-radius-l);
+  /* The page colour, not a panel colour: a see-through effect is judged against this. */
+  background: var(--et-bg);
+}
+
+.et-effect__stage:fullscreen {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+
+.et-effect__hud {
+  position: absolute;
+  z-index: 2;
+  top: var(--et-space-3);
+  left: var(--et-space-3);
+}
+
+.et-effect__hud:empty {
+  display: none;
+}
+
+.et-effect__toolbar,
+.et-effect__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--et-space-2);
+}
+
+.et-effect__spacer {
+  flex: 1;
+}
+
+.et-effect__tabpanel {
+  min-height: 240px;
+  padding: var(--et-space-4) 0 var(--et-space-6);
+}
+
+.et-effect__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--et-space-5);
+  min-width: 0;
+}
+
+.et-effect__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--et-space-3);
+}
+
+.et-effect__title {
+  font-size: var(--et-text-xl);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.et-effect__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--et-space-2);
+}
+
+@media (max-width: 900px) {
+  .et-effect {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--et-space-4);
+  }
+
+  /* Title first, then the effect, then its controls. */
+  .et-effect__side {
+    display: contents;
+  }
+
+  .et-effect__intro {
+    order: -1;
+  }
+
+  .et-effect__stage {
+    height: 52vh;
+  }
+}

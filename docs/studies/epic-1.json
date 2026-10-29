@@ -1,0 +1,166 @@
+{
+  "epic": "1",
+  "measuredAt": "2026-10-29T08:17:22.574Z",
+  "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+  "deviceClass": "unclassified",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m1-max",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+  },
+  "runtime": "Dawn (node webgpu bindings)",
+  "method": {
+    "metric": "GPU timestamps: frame span (first pass start to last pass end) and marginal cost per extra frame",
+    "warmupFrames": 12,
+    "rounds": 11,
+    "repeats": 4
+  },
+  "note": "Only this adapter was measured. spanMs includes the timing floor (see the \"(floor)\" rows); slopeMs is the cost of one more frame of the same work and is the number to compare by. A slope at or below zero means the work is below what this method can resolve.",
+  "rows": [
+    {
+      "effect": "(floor)",
+      "config": "one constant-colour pass",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 0.065536,
+      "slopeMs": 0.065536,
+      "slopeMinMs": 0.043690666666666676,
+      "slopeMaxMs": 0.08738133333333335,
+      "passes": 1,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "(tail)",
+      "config": "constant scene + bloom + output",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 0.589824,
+      "slopeMs": 0.39321599999999995,
+      "slopeMinMs": 0.17476266666666662,
+      "slopeMaxMs": 0.6990506666666668,
+      "passes": 11,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "hello",
+      "config": "default",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 0.131072,
+      "slopeMs": 0.131072,
+      "slopeMinMs": 0.10922666666666665,
+      "slopeMaxMs": 0.262144,
+      "passes": 2,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "hello",
+      "config": "preset breeze",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 0.196608,
+      "slopeMs": 0.17476266666666665,
+      "slopeMinMs": -0.196608,
+      "slopeMaxMs": 0.30583466666666664,
+      "passes": 2,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "hello",
+      "config": "preset still",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 0.393216,
+      "slopeMs": 0.32767999999999997,
+      "slopeMinMs": 0.24029866666666666,
+      "slopeMaxMs": 0.6335146666666666,
+      "passes": 2,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "hello",
+      "config": "preset tall",
+      "width": 1920,
+      "height": 1080,
+      "spanMs": 0.393216,
+      "slopeMs": 0.32767999999999997,
+      "slopeMinMs": 0.3058346666666667,
+      "slopeMaxMs": 0.851968,
+      "passes": 2,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "(floor)",
+      "config": "one constant-colour pass",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.065536,
+      "slopeMs": 0.065536,
+      "slopeMinMs": -0.08738133333333332,
+      "slopeMaxMs": 0.08738133333333335,
+      "passes": 1,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "(tail)",
+      "config": "constant scene + bloom + output",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.458752,
+      "slopeMs": 0.3495253333333333,
+      "slopeMinMs": 0.30583466666666664,
+      "slopeMaxMs": 0.6335146666666667,
+      "passes": 9,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "hello",
+      "config": "default",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.131072,
+      "slopeMs": 0.10922666666666665,
+      "slopeMinMs": 0.08738133333333335,
+      "slopeMaxMs": 0.10922666666666665,
+      "passes": 2,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "hello",
+      "config": "preset breeze",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.131072,
+      "slopeMs": 0.10922666666666665,
+      "slopeMinMs": -0.4369066666666666,
+      "slopeMaxMs": 0.131072,
+      "passes": 2,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "hello",
+      "config": "preset still",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.131072,
+      "slopeMs": 0.10922666666666665,
+      "slopeMinMs": 0.08738133333333335,
+      "slopeMaxMs": 0.6335146666666667,
+      "passes": 2,
+      "metric": "gpu-timestamp"
+    },
+    {
+      "effect": "hello",
+      "config": "preset tall",
+      "width": 960,
+      "height": 540,
+      "spanMs": 0.131072,
+      "slopeMs": 0.10922666666666665,
+      "slopeMinMs": 0.08738133333333335,
+      "slopeMaxMs": 0.6335146666666667,
+      "passes": 2,
+      "metric": "gpu-timestamp"
+    }
+  ]
+}

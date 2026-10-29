@@ -1,0 +1,53 @@
+{
+  "grass-footer": {
+    "bundleKb": 43.4,
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 0.83
+      },
+      {
+        "device": "Apple M1 Max",
+        "deviceClass": "apple-silicon",
+        "method": "browser-span",
+        "ms": 2.07
+      }
+    ]
+  },
+  "hello": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 0.13
+      },
+      {
+        "device": "Apple M1 Max",
+        "deviceClass": "apple-silicon",
+        "method": "browser-span",
+        "ms": 0.37
+      }
+    ],
+    "bundleKb": 25.4
+  },
+  "meadow": {
+    "gpuMs": [
+      {
+        "device": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "deviceClass": "unclassified",
+        "method": "marginal",
+        "ms": 2.23
+      },
+      {
+        "device": "Apple M1 Max",
+        "deviceClass": "apple-silicon",
+        "method": "browser-span",
+        "ms": 6.21
+      }
+    ],
+    "bundleKb": 50.4
+  }
+}

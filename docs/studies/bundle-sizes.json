@@ -1,0 +1,84 @@
+{
+  "eager": {
+    "chunks": 6,
+    "raw": 15137,
+    "gzip": 7107
+  },
+  "effects": {
+    "grass-footer": {
+      "chunks": 16,
+      "ownGzip": 1647,
+      "gzip": 44433,
+      "raw": 116042,
+      "files": [
+        "assets/blade-aEH0jrew.js",
+        "assets/clouds-BWOFKtHl.js",
+        "assets/colour-caps-rW91Sa46.js",
+        "assets/dose-D7hN0jZo.js",
+        "assets/fullscreen-BDXEFvdz.js",
+        "assets/gamut-COkJmrKM.js",
+        "assets/grass-footer-DgC_ztsq.js",
+        "assets/hash-bWx0F85T.js",
+        "assets/oklab-CS7oj3eq.js",
+        "assets/pointer-V9KwuTlP.js",
+        "assets/profiler-Bi27xYp-.js",
+        "assets/shader-xzRCRHTt.js",
+        "assets/tail-CTpT_DNu.js",
+        "assets/thinfilm-Ci8F6ZWx.js",
+        "assets/types-ci2WwWg0.js",
+        "assets/wind-CXKlTP-J.js"
+      ],
+      "gzipKb": 43.4
+    },
+    "hello": {
+      "chunks": 13,
+      "ownGzip": 1065,
+      "gzip": 25971,
+      "raw": 66059,
+      "files": [
+        "assets/blades-SDjLrew9.js",
+        "assets/colour-caps-rW91Sa46.js",
+        "assets/dose-D7hN0jZo.js",
+        "assets/fullscreen-BDXEFvdz.js",
+        "assets/gamut-COkJmrKM.js",
+        "assets/hash-bWx0F85T.js",
+        "assets/hello-CReiGwnr.js",
+        "assets/oklab-CS7oj3eq.js",
+        "assets/profiler-Bi27xYp-.js",
+        "assets/shader-xzRCRHTt.js",
+        "assets/tail-CTpT_DNu.js",
+        "assets/thinfilm-Ci8F6ZWx.js",
+        "assets/types-ci2WwWg0.js"
+      ],
+      "gzipKb": 25.4
+    },
+    "meadow": {
+      "chunks": 19,
+      "ownGzip": 5410,
+      "gzip": 51623,
+      "raw": 132306,
+      "files": [
+        "assets/blade-aEH0jrew.js",
+        "assets/clouds-BWOFKtHl.js",
+        "assets/colour-caps-rW91Sa46.js",
+        "assets/dof-E9l4hU1v.js",
+        "assets/dose-D7hN0jZo.js",
+        "assets/fullscreen-BDXEFvdz.js",
+        "assets/gamut-COkJmrKM.js",
+        "assets/hash-bWx0F85T.js",
+        "assets/meadow-DtDpee7k.js",
+        "assets/oklab-CS7oj3eq.js",
+        "assets/pointer-V9KwuTlP.js",
+        "assets/pollen-BKchZyAy.js",
+        "assets/profiler-Bi27xYp-.js",
+        "assets/shader-xzRCRHTt.js",
+        "assets/sky-Dxc8feoN.js",
+        "assets/tail-CTpT_DNu.js",
+        "assets/thinfilm-Ci8F6ZWx.js",
+        "assets/types-ci2WwWg0.js",
+        "assets/wind-CXKlTP-J.js"
+      ],
+      "gzipKb": 50.4
+    }
+  }
+}
