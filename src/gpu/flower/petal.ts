@@ -121,3 +121,94 @@ export function petalPoint(shape: Readonly<PetalShape>, u: number, v: number): V
     (radius * (1 - Math.cos(theta)) + z * Math.cos(theta)) * L,
   ];
 }
+
+/**
+ * Story 11.1's levels of detail: the grids an organ can be drawn with, finest first. An organ gets
+ * the coarsest whose chord error (`gridError`) at its length on screen is within a pixel: its
+ * normals are the surface's own, so inside a petal no facet shows, and a pixel is what the edge
+ * can afford. Ruffles set it: their waves are short, and a grid's error falls as 1/n².
+ */
+export const PETAL_LODS = [
+  { nu: 48, nv: 24 },
+  { nu: 32, nv: 16 },
+  { nu: 22, nv: 11 },
+  { nu: 12, nv: 6 },
+  { nu: 5, nv: 3 },
+] as const;
+
+/** The level of detail for a petal `px` long on screen, within `tolerance` px; the finest if none. */
+export function petalLod(shape: Readonly<PetalShape>, px: number, tolerance = 1): number {
+  for (let k = PETAL_LODS.length - 1; k > 0; k--) {
+    const lod = PETAL_LODS[k]!;
+    if (gridError(shape, lod.nu, lod.nv) * px <= tolerance) return k;
+  }
+  return 0;
+}
+
+/**
+ * The level of detail for a ring round the axis (a tube or the receptacle) `radiusPx` across on
+ * screen: the coarsest whose `nv - 1` segments round it stay within `tolerance` px of the circle,
+ * a chord's sagitta r (1 - cos(π / n)).
+ */
+export function ringLod(radiusPx: number, tolerance = 1): number {
+  for (let k = PETAL_LODS.length - 1; k >= 0; k--) {
+    const n = PETAL_LODS[k]!.nv - 1;
+    if (radiusPx * (1 - Math.cos(Math.PI / n)) <= tolerance) return k;
+  }
+  return RING_GRID;
+}
+
+/**
+ * Every grid a flower is drawn with: the petals' levels of detail, then one for large rings, fine
+ * round the axis (64 segments: within a pixel up to a radius of 830 px) and coarse along it.
+ */
+export const GRIDS = [...PETAL_LODS, { nu: 24, nv: 65 }] as const;
+export const RING_GRID = PETAL_LODS.length;
+
+/**
+ * Where a grid's rows go along a petal, from evenly spaced s: closer together at the base and the
+ * tip. A round tip's width runs as √(1 - u), and the base's as a low power of u, so their slopes are
+ * infinite at the ends; spaced as u = s²(3 - 2s), both ends run linearly in s and a few rows draw
+ * them. The shader spaces its rows the same way.
+ */
+export function gridU(s: number): number {
+  return s * s * (3 - 2 * s);
+}
+
+/**
+ * The worst distance, in petal lengths, between the surface and the flat triangles of an nu x nv
+ * grid over it (rows spaced by `gridU`): measured at each cell's centre and the midpoints of its
+ * edges.
+ */
+export function gridError(shape: Readonly<PetalShape>, nu: number, nv: number): number {
+  const unit = { ...shape, length: 1 };
+  const at = (s: number, v: number) => petalPoint(unit, gridU(s), v);
+  let worst = 0;
+  for (let j = 0; j < nu - 1; j++) {
+    for (let i = 0; i < nv - 1; i++) {
+      const u0 = j / (nu - 1);
+      const u1 = (j + 1) / (nu - 1);
+      const v0 = (i / (nv - 1)) * 2 - 1;
+      const v1 = ((i + 1) / (nv - 1)) * 2 - 1;
+      const corners = [at(u0, v0), at(u1, v0), at(u0, v1), at(u1, v1)];
+      const mid = (a: Vec3, b: Vec3): Vec3 => [
+        (a[0] + b[0]) / 2,
+        (a[1] + b[1]) / 2,
+        (a[2] + b[2]) / 2,
+      ];
+      const checks: [Vec3, Vec3][] = [
+        [at((u0 + u1) / 2, v0), mid(corners[0]!, corners[1]!)],
+        [at(u0, (v0 + v1) / 2), mid(corners[0]!, corners[2]!)],
+        // The diagonal the two triangles share runs from (u1, v0) to (u0, v1).
+        [at((u0 + u1) / 2, (v0 + v1) / 2), mid(corners[1]!, corners[2]!)],
+      ];
+      for (const [surface, flat] of checks) {
+        worst = Math.max(
+          worst,
+          Math.hypot(surface[0] - flat[0], surface[1] - flat[1], surface[2] - flat[2]),
+        );
+      }
+    }
+  }
+  return worst;
+}

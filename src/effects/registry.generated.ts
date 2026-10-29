@@ -9,6 +9,7 @@ import { meta as meta5 } from './hello/meta.ts';
 import { meta as meta6 } from './lawn/meta.ts';
 import { meta as meta7 } from './meadow/meta.ts';
 import { meta as meta8 } from './mowing/meta.ts';
+import poster0 from './flower-opening/poster.webp?url';
 import poster1 from './fur-text/poster.webp?url';
 import poster2 from './grass-edges/poster.webp?url';
 import poster3 from './grass-footer/poster.webp?url';
@@ -43,6 +44,7 @@ export const loaders: Readonly<Record<string, () => Promise<EffectModule>>> = {
 };
 
 export const posters: Readonly<Record<string, string>> = {
+  'flower-opening': poster0,
   'fur-text': poster1,
   'grass-edges': poster2,
   'grass-footer': poster3,

@@ -96,3 +96,33 @@ describe('petal', () => {
     expect(petalPoint(curled, 1, 0)[2]).toBeLessThan(-0.3);
   });
 });
+
+describe('petal levels of detail', () => {
+  it('draws each petal with the coarsest grid within a pixel, coarser as it gets smaller', async () => {
+    const { arrange, FLOWERS } = await import('../src/gpu/flower/diagram.ts');
+    const { PETAL_LODS, gridError, petalLod } = await import('../src/gpu/flower/petal.ts');
+    const shapes = Object.values(FLOWERS)
+      .flatMap((d) => arrange(d))
+      .filter((o) => o.organ === 'petal' || o.organ === 'sepal')
+      .map((o) => ({ ...o.shape, curl: o.curl }));
+    const vertices = (px: number) =>
+      shapes.reduce((n, s) => {
+        const lod = PETAL_LODS[petalLod(s, px)]!;
+        return n + lod.nu * lod.nv;
+      }, 0) / shapes.length;
+    for (const s of shapes) {
+      let last = 0;
+      for (const px of [200, 100, 50, 25, 12, 6]) {
+        const k = petalLod(s, px);
+        const lod = PETAL_LODS[k]!;
+        // Every petal of every flower is within a pixel up to 200 px long.
+        expect(gridError(s, lod.nu, lod.nv) * px).toBeLessThanOrEqual(1);
+        expect(k).toBeGreaterThanOrEqual(last);
+        last = k;
+      }
+    }
+    // A petal 100 px long needs about a 22 x 11 grid on average, and one 25 px long a third of it.
+    expect(vertices(100)).toBeLessThan(22 * 11);
+    expect(vertices(25)).toBeLessThan((22 * 11) / 3);
+  });
+});

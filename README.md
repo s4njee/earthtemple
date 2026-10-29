@@ -36,7 +36,7 @@ npm run deploy     # build and upload dist/ to Cloudflare Pages (project earthte
 | `grass-growth`   | A lawn growing in from bare soil, over time or as the page scrolls: patches sprout and spread until they meet                                                                                   | B    |
 | `grass-edges`    | Grass growing along the top edges of the page's headings, cards and buttons, swaying and parting around the pointer                                                                             | A    |
 | `fur-text`       | A heading grown over with fur, grass or moss by shells, lit as strands, which the pointer combs                                                                                                 | B    |
-| `flower-opening` | One flower opening, from its floral diagram: a lily, buttercup, cherry blossom, poppy, rose or camellia, its petals grown surfaces that ruffle where their edges grew more                      | A    |
+| `flower-opening` | One flower opening on its swaying stem, from its floral diagram: nine flowers whose petals are grown surfaces, coloured by their pigments and opened by differential growth                     | A    |
 
 ## Layout
 
@@ -46,8 +46,11 @@ src/gpu/grass/              the blade engine: blade curve and species, placement
 src/gpu/wind/               the ground wind (twin of src/wgsl/wind.wgsl): gust fronts, lean, flutter;
                             the trample field: what is pressed down, springing back, and what a
                             mower has laid
-src/gpu/flower/              the flower model: petals as grown surfaces (twin of src/wgsl/petal.wgsl),
-                            floral diagrams of whorls and golden-angle spirals
+src/gpu/flower/              the flower model: petals as grown surfaces (twin of src/wgsl/petal.wgsl)
+                            and their levels of detail, floral diagrams of whorls, golden-angle
+                            spirals and fused tubes, opening by differential growth, stems in wind
+src/gpu/optics/petal.ts     petal colours from anthocyanins, carotenoids, betalains and flavonols
+src/gpu/grass/wildflowers.* the meadow's wildflowers: a drift map each, coloured by their pigments
 src/gpu/optics/leaf.ts      leaf colours from pigments, by a plate model after PROSPECT
 src/gpu/hash.ts             twins of the shader hashes, so CPU models make the same random choices
 src/gpu/safety/             dose, the pattern analyser, motion estimate, colour caps and the start gate's rules

@@ -41,7 +41,17 @@ describe('floral diagrams', () => {
 
   it('opens from the outside in, and every flower draws its diagram', () => {
     for (const diagram of Object.values(FLOWERS)) {
-      const organs = arrange(diagram);
+      const all = arrange(diagram);
+      // Every flower stands on one receptacle, wider than any organ's base.
+      const receptacle = all.filter((o) => o.organ === 'receptacle');
+      expect(receptacle).toHaveLength(1);
+      const organs = all.filter((o) => o.organ !== 'receptacle' && o.organ !== 'tube');
+      for (const o of organs) {
+        // Lobes stand on a tube's rim, not the receptacle.
+        if (o.radiusClosed === undefined) {
+          expect(o.radius).toBeLessThan(receptacle[0]!.shape.length);
+        }
+      }
       // Arranged outside in: the outer ring opens first, and nothing opens before what is outside it.
       expect(organs[0]!.order).toBe(0);
       for (let k = 1; k < organs.length; k++) {

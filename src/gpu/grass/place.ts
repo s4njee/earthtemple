@@ -4,6 +4,7 @@ import { groundWind, valueNoise } from '../wind/wind.ts';
 import { bladeShape, cellSize, type Vec3 } from './blade.ts';
 import { project, type GroundCamera } from './camera.ts';
 import { ALL_PARTS, FLAGS, type GrassSettings } from './field.ts';
+import { FLOWER_MIX } from './wildflowers.ts';
 
 // Twin of field.wgsl's `place`, for tests: the same blades from the same cells, in double
 // precision. A blade on the edge of a cull can fall the other way on the GPU's f32 arithmetic.
@@ -73,6 +74,25 @@ function clumpOf(px: number, pz: number, size: number, seed: number) {
   return { centre, hash };
 }
 
+/** Twin of `wildflower_at` (wildflowers.wgsl): the species whose drift map is highest, and how thick. */
+export function wildflowerAt(
+  x: number,
+  z: number,
+  seed: number,
+): { species: number; density: number } {
+  let best = 0;
+  let top = 0;
+  for (let k = 0; k < 4; k++) {
+    const n =
+      valueNoise(x / 4.5 + k * 17.3, z / 4.5 + k * 5.1, (seed + 21 + k) >>> 0) * FLOWER_MIX[k]!;
+    if (n > top) {
+      top = n;
+      best = k;
+    }
+  }
+  return { species: best, density: smoothstep(0.4, 0.75, top) };
+}
+
 /** Every blade (and flower head) the camera would draw, with the cell it grew from. */
 export function placeBlades(
   camera: GroundCamera,
@@ -136,8 +156,8 @@ export function placeBlades(
         : { centre: [rx, rz] as [number, number], hash: h3 };
       const rc = unorm3(clump.hash);
       const stem = r4[1] < sp.stems;
-      const drift = smoothstep(0.35, 0.75, valueNoise(rx / 3.5, rz / 3.5, (seed + 9) >>> 0));
-      const flower = stem && r4[2] < sp.flowers * 2 * drift;
+      const wild = wildflowerAt(rx, rz, seed);
+      const flower = stem && r4[2] < sp.flowers * 2 * wild.density;
       const dry = !stem && has(FLAGS.dry) && r4[0] < sp.dry;
       let height = (hMin + (hMax - hMin) * r2[1]) * (0.7 + 0.6 * rc[2]);
       let width = (sp.width * (0.8 + 0.4 * r3[1])) / Math.sqrt(Math.max(keep, 0.05));
@@ -220,7 +240,7 @@ export function placeBlades(
           v2: v0,
           width: headSize,
           facing,
-          tone: (r4[2] * 7.31) % 1,
+          tone: wild.species + 0.5 * ((r4[2] * 7.31) % 1),
         });
       }
     }

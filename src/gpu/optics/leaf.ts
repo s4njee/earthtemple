@@ -114,10 +114,19 @@ function layerTau(k: number): number {
 
 /** Reflectance and transmittance of the leaf at one wavelength. */
 export function leafSpectrum(p: Pigments, l: number): { r: number; t: number } {
+  const k = p.chlorophyll * chlorophyllK(l) + p.carotenoids * carotenoidK(l) + p.brown * brownK(l);
+  return plateSpectrum(k, p.layers, l);
+}
+
+/**
+ * The plate model at one wavelength: a stack of `layers` elementary layers absorbing `k` in all
+ * (the sum over pigments of amount times specific absorption, cm2/ug times ug/cm2). Shared by the
+ * leaf and the petal (src/gpu/optics/petal.ts), which differ only in their pigments and layers.
+ */
+export function plateSpectrum(kTotal: number, layers: number, l: number): { r: number; t: number } {
   const n = refractive(l);
-  const N = Math.max(p.layers, 1.0001);
-  const k =
-    (p.chlorophyll * chlorophyllK(l) + p.carotenoids * carotenoidK(l) + p.brown * brownK(l)) / N;
+  const N = Math.max(layers, 1.0001);
+  const k = kTotal / N;
   const tau = layerTau(k);
   const talf = tav(59, n);
   const ralf = 1 - talf;

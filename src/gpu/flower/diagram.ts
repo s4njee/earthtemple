@@ -14,7 +14,8 @@ import { FLAT_PETAL, type PetalShape } from './petal.ts';
 
 export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
-export type OrganKind = 'sepal' | 'petal' | 'stamen' | 'carpel';
+/** A flower's parts. The stem is not in a floral diagram; an effect adds it (story 11.5). */
+export type OrganKind = 'sepal' | 'petal' | 'stamen' | 'carpel' | 'receptacle' | 'tube' | 'stem';
 
 interface Ring {
   organ: OrganKind;
@@ -28,11 +29,28 @@ interface Ring {
   shape: PetalShape;
 }
 
+/**
+ * A fused whorl's tube: the members joined along their lower parts into one surface round the axis,
+ * a corolla tube (a morning glory's funnel) or a corona (a daffodil's trumpet). It rises `length`
+ * from the whorl's radius and height to a rim that widens as the flower opens, its profile
+ * r(u) = r0 + (rim - r0) u^flare; `waves` ruffles round the rim, `ruffle` of the length deep.
+ * The free lobes of the members stand on the rim.
+ */
+export interface Tube {
+  length: number;
+  rim: [number, number];
+  flare: number;
+  waves?: number;
+  ruffle?: number;
+}
+
 export interface Whorl extends Ring {
   kind: 'whorl';
   count: number;
   /** Turn from the whorl outside it, as a fraction of the angle between members (0.5 alternates). */
   offset: number;
+  /** Fused into a tube, with its members' free lobes on its rim (none for a corona alone). */
+  tube?: Tube;
 }
 
 export interface Spiral extends Omit<Ring, 'radius' | 'height' | 'open' | 'closed'> {
@@ -75,6 +93,10 @@ export interface Organ {
   order: number;
   /** Its curl when open, rad: its shape's, or along a spiral's range. */
   curl: number;
+  /** A lobe on a tube's rim: its base's radius in the bud, moving out to `radius` as it opens. */
+  radiusClosed?: number;
+  /** The tube itself, for organ 'tube'. */
+  tube?: Tube;
 }
 
 export function arrange(diagram: Readonly<FloralDiagram>): Organ[] {
@@ -85,22 +107,39 @@ export function arrange(diagram: Readonly<FloralDiagram>): Organ[] {
     if (ring.kind === 'whorl') {
       // Turned from the whorl outside it by `offset` of that whorl's spacing, so whorls of the
       // same count alternate.
-      turn += (ring.offset * 2 * Math.PI) / previous;
+      turn += (ring.offset * 2 * Math.PI) / Math.max(previous, 1);
+      const tube = ring.tube;
+      if (tube) {
+        organs.push({
+          organ: 'tube',
+          azimuth: 0,
+          radius: ring.radius,
+          height: ring.height,
+          closed: 0,
+          open: 0,
+          scale: 1,
+          shape: { ...FLAT_PETAL, length: tube.length },
+          order: r,
+          curl: 0,
+          tube,
+        });
+      }
       for (let k = 0; k < ring.count; k++) {
         organs.push({
           organ: ring.organ,
           azimuth: turn + (2 * Math.PI * k) / ring.count,
-          radius: ring.radius,
-          height: ring.height,
+          radius: tube ? tube.rim[1] : ring.radius,
+          height: tube ? ring.height + tube.length : ring.height,
           closed: ring.closed,
           open: ring.open,
           scale: 1,
           shape: ring.shape,
           order: r,
           curl: ring.shape.curl,
+          ...(tube ? { radiusClosed: tube.rim[0] } : {}),
         });
       }
-      previous = ring.count;
+      if (ring.count > 0) previous = ring.count;
     } else {
       for (let k = 0; k < ring.count; k++) {
         const t = ring.count > 1 ? k / (ring.count - 1) : 0;
@@ -124,6 +163,23 @@ export function arrange(diagram: Readonly<FloralDiagram>): Organ[] {
   // Opening order: ring by ring from the outside in, and along a spiral from its outer end.
   const last = Math.max(...organs.map((o) => o.order), 1e-9);
   for (const o of organs) o.order /= last;
+  // The receptacle the organs stand on: a low dome out a little past the widest base, so nothing
+  // shows through the middle of the flower.
+  const reach =
+    Math.max(0.0015, ...organs.filter((o) => o.radiusClosed === undefined).map((o) => o.radius)) *
+    1.15;
+  organs.push({
+    organ: 'receptacle',
+    azimuth: 0,
+    radius: 0,
+    height: 0,
+    closed: 0,
+    open: 0,
+    scale: 1,
+    shape: { ...FLAT_PETAL, length: reach, cup: 0.35 },
+    order: 0,
+    curl: 0,
+  });
   return organs;
 }
 
@@ -185,8 +241,9 @@ export const LILY: FloralDiagram = {
       radius: 0.0015,
       height: 0.002,
       closed: 0.05,
-      open: 0.45,
-      shape: petal({ ...STAMEN, length: 0.05 }),
+      // Splayed and curving outwards, as a lily's are: upright, six long filaments are a grating.
+      open: 0.75,
+      shape: petal({ ...STAMEN, length: 0.05, curl: -0.6 }),
     },
     {
       kind: 'whorl',
@@ -231,14 +288,27 @@ export const BUTTERCUP: FloralDiagram = {
     {
       kind: 'spiral',
       organ: 'stamen',
-      count: 34,
+      count: 55,
       divergence: GOLDEN_ANGLE,
       radius: [0.0022, 0.0012],
       height: [0.001, 0.0015],
       closed: [0.3, 0.2],
       open: [0.95, 0.5],
       inner: 0.8,
-      shape: petal({ ...STAMEN, length: 0.004 }),
+      shape: petal({ ...STAMEN, length: 0.0045, width: 0.15 }),
+    },
+    // Many free carpels in a green head at the centre, as the buttercups' are.
+    {
+      kind: 'spiral',
+      organ: 'carpel',
+      count: 21,
+      divergence: GOLDEN_ANGLE,
+      radius: [0.0011, 0.0001],
+      height: [0.0015, 0.0025],
+      closed: [0.2, 0],
+      open: [0.7, 0.05],
+      inner: 0.7,
+      shape: petal({ ...CARPEL, length: 0.0025, width: 0.55 }),
     },
   ],
 };
@@ -453,6 +523,213 @@ export const CAMELLIA: FloralDiagram = {
   ],
 };
 
+/**
+ * *Hibiscus trionum*, the flower-of-an-hour: five broad pale petals with a dark base, whose cuticle
+ * is striated into a diffraction grating (Whitney et al.), and a column of stamens fused round the
+ * style, the mallows' monadelphous column, with anthers along it.
+ */
+export const HIBISCUS: FloralDiagram = {
+  name: 'hibiscus',
+  rings: [
+    {
+      kind: 'whorl',
+      organ: 'sepal',
+      count: 5,
+      offset: 0,
+      radius: 0.003,
+      height: 0,
+      closed: 0.2,
+      open: 1.5,
+      shape: petal({ ...SEPAL, length: 0.014, width: 0.45, cup: 0.4 }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 5,
+      offset: 0.5,
+      radius: 0.0035,
+      height: 0.0005,
+      closed: 0.15,
+      open: 1.3,
+      shape: petal({
+        length: 0.03,
+        width: 0.95,
+        widest: 0.68,
+        tip: 0,
+        claw: 0.06,
+        cup: 0.25,
+        curl: -0.2,
+        excess: 0.025,
+        fringe: 0.3,
+      }),
+    },
+    // The fused column, upright, then its anthers spiralling up it.
+    {
+      kind: 'whorl',
+      organ: 'stamen',
+      count: 1,
+      offset: 0,
+      radius: 0,
+      height: 0.001,
+      closed: 0,
+      open: 0,
+      shape: petal({ ...STAMEN, length: 0.012, width: 0.12, widest: 0.5 }),
+    },
+    {
+      kind: 'spiral',
+      organ: 'stamen',
+      count: 21,
+      divergence: GOLDEN_ANGLE,
+      radius: [0.0009, 0.0006],
+      height: [0.004, 0.011],
+      closed: [0.3, 0.3],
+      open: [1.3, 1.1],
+      inner: 0.8,
+      shape: petal({ ...STAMEN, length: 0.0028 }),
+    },
+  ],
+};
+
+/**
+ * Morning glory ('Heavenly Blue'): five petals fused nearly to their tips into a funnel that flares
+ * into a limb, waved where the five petals were. It turns from purple to blue as it opens: Yoshida et al. found the
+ * vacuole's pH rise from 6.6 to 7.7 in the hours before (the effect's `bud` pigments).
+ */
+export const MORNING_GLORY: FloralDiagram = {
+  name: 'morning glory',
+  rings: [
+    {
+      kind: 'whorl',
+      organ: 'sepal',
+      count: 5,
+      offset: 0,
+      radius: 0.0025,
+      height: 0,
+      closed: 0.15,
+      open: 0.35,
+      shape: petal({ ...SEPAL, length: 0.012, width: 0.35 }),
+    },
+    // Fused nearly to the edge: one funnel flaring into a limb, waved into its five petals.
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 0,
+      offset: 0.5,
+      radius: 0.0022,
+      height: 0.0005,
+      closed: 0,
+      open: 0,
+      tube: { length: 0.05, rim: [0.004, 0.045], flare: 3, waves: 5, ruffle: 0.05 },
+      shape: FLAT_PETAL,
+    },
+    {
+      kind: 'whorl',
+      organ: 'stamen',
+      count: 5,
+      offset: 0,
+      radius: 0.0012,
+      height: 0.002,
+      closed: 0.05,
+      open: 0.15,
+      shape: petal({ ...STAMEN, length: 0.022 }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'carpel',
+      count: 1,
+      offset: 0,
+      radius: 0,
+      height: 0.002,
+      closed: 0,
+      open: 0,
+      shape: petal({ ...CARPEL, length: 0.025, width: 0.05 }),
+    },
+  ],
+};
+
+/**
+ * Daffodil: six tepals spread flat round a corona, a trumpet that is not petals at all but a
+ * fused outgrowth of the perianth, ruffled at its rim.
+ */
+export const DAFFODIL: FloralDiagram = {
+  name: 'daffodil',
+  rings: [
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 3,
+      offset: 0,
+      radius: 0.004,
+      height: 0,
+      closed: 0.15,
+      open: 1.45,
+      shape: petal({
+        length: 0.035,
+        width: 0.55,
+        widest: 0.5,
+        tip: 0.55,
+        cup: 0.15,
+        curl: -0.15,
+        excess: 0.01,
+      }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 3,
+      offset: 0.5,
+      radius: 0.0038,
+      height: 0.0005,
+      closed: 0.12,
+      open: 1.35,
+      shape: petal({
+        length: 0.033,
+        width: 0.55,
+        widest: 0.5,
+        tip: 0.5,
+        cup: 0.18,
+        curl: -0.1,
+        excess: 0.01,
+      }),
+    },
+    // The corona alone: a tube with no lobes.
+    {
+      kind: 'whorl',
+      organ: 'petal',
+      count: 0,
+      offset: 0,
+      radius: 0.0035,
+      height: 0.001,
+      closed: 0,
+      open: 0,
+      tube: { length: 0.026, rim: [0.005, 0.013], flare: 1.6, waves: 7, ruffle: 0.06 },
+      shape: FLAT_PETAL,
+    },
+    {
+      kind: 'whorl',
+      organ: 'stamen',
+      count: 6,
+      offset: 0,
+      radius: 0.0015,
+      height: 0.002,
+      closed: 0.05,
+      open: 0.12,
+      shape: petal({ ...STAMEN, length: 0.018 }),
+    },
+    {
+      kind: 'whorl',
+      organ: 'carpel',
+      count: 1,
+      offset: 0,
+      radius: 0,
+      height: 0.002,
+      closed: 0,
+      open: 0,
+      shape: petal({ ...CARPEL, length: 0.022, width: 0.05 }),
+    },
+  ],
+};
+
 export const FLOWERS = {
   lily: LILY,
   buttercup: BUTTERCUP,
@@ -460,13 +737,17 @@ export const FLOWERS = {
   poppy: POPPY,
   rose: ROSE,
   camellia: CAMELLIA,
+  hibiscus: HIBISCUS,
+  'morning glory': MORNING_GLORY,
+  daffodil: DAFFODIL,
 };
 export type FlowerName = keyof typeof FLOWERS;
 
 /** The flower's floral diagram, as a botanist draws it: organs on rings seen from above. */
 export function diagramSvg(diagram: Readonly<FloralDiagram>, size = 240): string {
-  const organs = arrange(diagram);
-  const kinds: OrganKind[] = ['sepal', 'petal', 'stamen', 'carpel'];
+  // The receptacle is under everything; a diagram leaves it out.
+  const organs = arrange(diagram).filter((o) => o.organ !== 'receptacle' && o.organ !== 'tube');
+  const kinds: OrganKind[] = ['sepal', 'petal', 'stamen', 'carpel', 'receptacle', 'tube', 'stem'];
   const ringOf = (o: Organ, i: number) => {
     const ring = diagram.rings.findIndex((r) => r.organ === o.organ);
     return ring + (diagram.rings[ring]?.kind === 'spiral' ? i / organs.length : 0);

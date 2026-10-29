@@ -2,6 +2,7 @@
 #include "look-params.wgsl"
 #include "grass-shade.wgsl"
 #include "growth.wgsl"
+#include "wildflowers.wgsl"
 
 // The ground under and beyond the blades (story 2.8): one quad on the ground, drawn before them
 // into the same multisampled target.
@@ -91,6 +92,21 @@ fn wind_now_ground() -> Wind {
   // A growing lawn's canopy comes in with its blades.
   let far = smoothstep(0.55 * F.reach, 0.95 * F.reach, d) * grown_at(in.world.xz, 0.12);
   var colour = soil;
-  if (far > 0.0) { colour = mix(soil, canopy(in.world.xz), far); }
+  if (far > 0.0) {
+    // Far wildflowers are a tint on the canopy: their drifts, coloured by the share of the ground
+    // their heads cover (story 11.6).
+    var tinted = canopy(in.world.xz);
+    if (F.flower_cover > 0.0) {
+      let wild = wildflower_at(in.world.xz);
+      let flowers = min(F.flower_cover * wild.density, 0.6);
+      if (flowers > 0.0) {
+        let petal = L.flower_petal[wild.species].rgb;
+        let head = vec3f(in.world.x, L.canopy_height, in.world.z);
+        let lit = shade_surface(Surface(petal, petal * 0.6), vec3f(0.0, 1.0, 0.0), vec3f(1.0, 0.0, 0.0), head, 0.0);
+        tinted = mix(tinted, lit, flowers);
+      }
+    }
+    colour = mix(soil, tinted, far);
+  }
   return Fragment(vec4f(colour, 1.0), d);
 }

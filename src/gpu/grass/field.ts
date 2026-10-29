@@ -1,6 +1,9 @@
 import { leafColours } from '../optics/leaf.ts';
 import { createShader, withChunks } from '../shader.ts';
-import { createUniformBuffer, defineUniformStruct } from '../uniforms.ts';
+import { createUniformBuffer, defineUniformStruct, uniformArray } from '../uniforms.ts';
+import { FLOWER_MIX, HEAD_AREA, wildflowerLook } from './wildflowers.ts';
+
+const WILDFLOWER_LOOK = wildflowerLook();
 import type { TrampleView } from '../wind/trample.ts';
 import { BLADE_BYTES, cellSize, LOD_LEVELS, type Species } from './blade.ts';
 import type { GroundCamera } from './camera.ts';
@@ -64,6 +67,9 @@ export const Field = defineUniformStruct('Field', {
   stems: 'f32',
   stem_height: 'f32',
   flowers: 'f32',
+  /** Story 11.6: each wildflower's claim on the meadow, and the ground their heads cover at a drift's heart. */
+  flower_mix: 'vec4f',
+  flower_cover: 'f32',
   lod0: 'f32',
   lod1: 'f32',
   lod_blend: 'f32',
@@ -114,6 +120,9 @@ export const Look = defineUniformStruct('Look', {
   ground_mode: 'f32',
   soil: 'vec3f',
   viewport: 'vec2f',
+  /** Story 11.6: each wildflower's petal colour (and its petal count in w) and centre colour. */
+  flower_petal: uniformArray('vec4f', 4),
+  flower_centre: uniformArray('vec4f', 4),
 });
 
 export interface GrassSettings {
@@ -491,6 +500,17 @@ export function createGrassField(device: GPUDevice, options: GrassFieldOptions):
         stems: s.species.stems,
         stem_height: s.species.stemHeight,
         flowers: s.species.flowers * (s.flowers ?? 1),
+        flower_mix: FLOWER_MIX,
+        // Heads at a drift's heart: blades a square metre, the share that are flowering stems with
+        // a flower (twice the species' share there), and a head's area.
+        flower_cover:
+          s.species.density *
+          s.density *
+          s.species.stems *
+          2 *
+          s.species.flowers *
+          (s.flowers ?? 1) *
+          HEAD_AREA,
         lod0: s.lod0,
         lod1: s.lod1,
         lod_blend: s.lodBlend ?? 0.3,
@@ -533,6 +553,7 @@ export function createGrassField(device: GPUDevice, options: GrassFieldOptions):
         round: 0.5,
         min_width: 1,
         viewport: [size.width, size.height],
+        ...WILDFLOWER_LOOK,
       });
       look.upload();
     },

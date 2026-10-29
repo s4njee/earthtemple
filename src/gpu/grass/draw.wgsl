@@ -152,7 +152,8 @@ fn shade(in: Varying, front: bool) -> vec3f {
 
 // --- Flower heads -----------------------------------------------------------------------------
 // A disc at the stem's tip, lying in the horizontal: seen from the side it is an ellipse. Four
-// kinds by the head's pick: ox-eye daisy, buttercup, poppy, cornflower, with their petal counts.
+// species by the head's tone (story 11.6): ox-eye daisy, buttercup, poppy, cornflower, with their
+// petal counts and their pigments' colours.
 
 struct FlowerVarying {
   @builtin(position) position: vec4f,
@@ -186,24 +187,11 @@ struct FlowerVarying {
 @fragment fn flower_fs(in: FlowerVarying) -> Fragment {
   let r = length(in.uv);
   let angle = atan2(in.uv.y, in.uv.x);
-  var petals = 13.0;
-  var petal = vec3f(0.85, 0.84, 0.8);
-  var centre = vec3f(0.8, 0.55, 0.05);
-  if (in.pick > 0.4) {
-    petals = 5.0;
-    petal = vec3f(0.85, 0.62, 0.04);
-    centre = petal;
-  }
-  if (in.pick > 0.65) {
-    petals = 4.0;
-    petal = vec3f(0.62, 0.04, 0.02);
-    centre = vec3f(0.03, 0.02, 0.02);
-  }
-  if (in.pick > 0.85) {
-    petals = 8.0;
-    petal = vec3f(0.12, 0.2, 0.62);
-    centre = vec3f(0.15, 0.1, 0.35);
-  }
+  // Its species' colours, from their pigments (src/gpu/grass/wildflowers.ts).
+  let species = min(u32(in.pick), 3u);
+  let petals = L.flower_petal[species].w;
+  let petal = L.flower_petal[species].rgb * mix(0.92, 1.08, fract(in.pick) * 2.0);
+  let centre = L.flower_centre[species].rgb;
   let edge = 0.55 + 0.45 * pow(abs(cos(0.5 * petals * angle)), 0.6);
   // Coverage across the edge, about a pixel wide; a far flower is a soft round dot.
   let width = max(1.0 / max(in.pixels, 1e-3), 0.05);

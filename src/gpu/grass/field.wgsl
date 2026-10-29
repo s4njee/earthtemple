@@ -4,6 +4,7 @@
 #include "field-params.wgsl"
 #include "grass-flags.wgsl"
 #include "growth.wgsl"
+#include "wildflowers.wgsl"
 
 // Stories 2.2 to 2.5: the grass field, grown afresh each frame in compute. Twin of
 // src/gpu/grass/place.ts.
@@ -134,9 +135,11 @@ fn append(lod: u32, blade: Blade) {
   if (has(F.flags, CLUMPS)) { clump = clump_of(root); }
   let rc = to_unorm_3d(clump.hash);
   let stem = r4.y < F.stems;
-  // Wildflowers grow in drifts, not evenly: their share rises and falls over a few metres.
-  let drift = smoothstep(0.35, 0.75, value_noise(root / 3.5, F.seed + 9u));
-  let flower = stem && r4.z < F.flowers * 2.0 * drift;
+  // Wildflowers grow in drifts, each species its own (story 11.6). Only a stem can carry one, and
+  // the drift maps are four noises: only stems look them up.
+  var wild = Wildflower(0u, 0.0);
+  if (stem && F.flowers > 0.0) { wild = wildflower_at(root); }
+  let flower = stem && r4.z < F.flowers * 2.0 * wild.density;
   let dry = !stem && has(F.flags, DRY) && r4.x < F.dry;
   var height = mix(F.height_min, F.height_max, r2.y) * mix(0.7, 1.3, rc.z);
   var width = F.width * mix(0.8, 1.2, r3.y) * inverseSqrt(max(keep, 0.05));
@@ -203,7 +206,8 @@ fn append(lod: u32, blade: Blade) {
     // The head, at the stem's tip, facing along it; its size and its kind of flower. Not widened
     // with distance as the blades are: a flower is one thing, and fewer of them is enough.
     let size = mix(0.018, 0.035, r2.y);
-    append(3u, Blade(curve.v2, size, curve.v2 - curve.v1, facing, v0, fract(r4.z * 7.31)));
+    // Its tone is its species, and a little variety within it.
+    append(3u, Blade(curve.v2, size, curve.v2 - curve.v1, facing, v0, f32(wild.species) + 0.5 * fract(r4.z * 7.31)));
   }
 }
 
